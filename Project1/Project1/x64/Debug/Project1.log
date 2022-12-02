@@ -1,0 +1,25 @@
+﻿  main.c
+C:\Users\noamt\OneDrive\Documents\GitHub\Computer-Architecturte\Project1\Project1\main.c(112,20): warning C4244: '=': conversion from 'int' to 'float', possible loss of data
+C:\Users\noamt\OneDrive\Documents\GitHub\Computer-Architecturte\Project1\Project1\main.c(220,15): warning C4047: 'return': 'int' differs in levels of indirection from 'char *'
+C:\Users\noamt\OneDrive\Documents\GitHub\Computer-Architecturte\Project1\Project1\main.c(215,11): warning C4047: 'initializing': 'char *' differs in levels of indirection from 'char **'
+C:\Users\noamt\OneDrive\Documents\GitHub\Computer-Architecturte\Project1\Project1\main.c(226,26): warning C4133: 'function': incompatible types - from 'char *' to 'FILE *const '
+C:\Users\noamt\OneDrive\Documents\GitHub\Computer-Architecturte\Project1\Project1\main.c(320,37): warning C4047: 'function': 'int' differs in levels of indirection from 'char **'
+C:\Users\noamt\OneDrive\Documents\GitHub\Computer-Architecturte\Project1\Project1\main.c(320,34): warning C4024: 'issue': different types for formal and actual parameter 1
+C:\Users\noamt\OneDrive\Documents\GitHub\Computer-Architecturte\Project1\Project1\main.c(331,63): warning C4047: 'function': 'char *' differs in levels of indirection from 'char *[20]'
+C:\Users\noamt\OneDrive\Documents\GitHub\Computer-Architecturte\Project1\Project1\main.c(331,52): warning C4024: 'decrypt_instruction': different types for formal and actual parameter 2
+C:\Users\noamt\OneDrive\Documents\GitHub\Computer-Architecturte\Project1\Project1\main.c(332,44): warning C4047: 'function': 'char *' differs in levels of indirection from 'char *[20]'
+C:\Users\noamt\OneDrive\Documents\GitHub\Computer-Architecturte\Project1\Project1\main.c(332,33): warning C4024: 'get_opcode': different types for formal and actual parameter 1
+C:\Users\noamt\OneDrive\Documents\GitHub\Computer-Architecturte\Project1\Project1\main.c(336,64): warning C4047: 'function': 'char *' differs in levels of indirection from 'char *[20]'
+C:\Users\noamt\OneDrive\Documents\GitHub\Computer-Architecturte\Project1\Project1\main.c(336,53): warning C4024: 'check_structural': different types for formal and actual parameter 2
+C:\Users\noamt\OneDrive\Documents\GitHub\Computer-Architecturte\Project1\Project1\main.c(337,49): warning C4047: 'function': 'char *' differs in levels of indirection from 'char *[20]'
+C:\Users\noamt\OneDrive\Documents\GitHub\Computer-Architecturte\Project1\Project1\main.c(337,38): warning C4024: 'instruction_in_fifo': different types for formal and actual parameter 1
+C:\Users\noamt\OneDrive\Documents\GitHub\Computer-Architecturte\Project1\Project1\main.c(343,26): warning C4047: 'function': 'int' differs in levels of indirection from 'char *[20]'
+C:\Users\noamt\OneDrive\Documents\GitHub\Computer-Architecturte\Project1\Project1\main.c(343,15): warning C4024: 'issue': different types for formal and actual parameter 1
+C:\Users\noamt\OneDrive\Documents\GitHub\Computer-Architecturte\Project1\Project1\main.c(207): warning C4715: 'fifo_is_empty': not all control paths return a value
+C:\Users\noamt\OneDrive\Documents\GitHub\Computer-Architecturte\Project1\Project1\main.c(235): warning C4716: 'decrypt_instruction': must return a value
+C:\Users\noamt\OneDrive\Documents\GitHub\Computer-Architecturte\Project1\Project1\main.c(238): warning C4716: 'check_war': must return a value
+C:\Users\noamt\OneDrive\Documents\GitHub\Computer-Architecturte\Project1\Project1\main.c(291): warning C4716: 'unit_is_busy': must return a value
+C:\Users\noamt\OneDrive\Documents\GitHub\Computer-Architecturte\Project1\Project1\main.c(296): warning C4716: 'can_issue_instruction': must return a value
+C:\Users\noamt\OneDrive\Documents\GitHub\Computer-Architecturte\Project1\Project1\main.c(300): warning C4716: 'get_opcode': must return a value
+C:\Users\noamt\OneDrive\Documents\GitHub\Computer-Architecturte\Project1\Project1\main.c(303): warning C4716: 'instruction_in_fifo': must return a value
+  Project1.vcxproj -> C:\Users\noamt\OneDrive\Documents\GitHub\Computer-Architecturte\Project1\x64\Debug\Project1.exe
