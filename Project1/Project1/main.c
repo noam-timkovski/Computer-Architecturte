@@ -1,10 +1,15 @@
 #pragma once
 
-#define _CRT_SECURE_NO_WARNINGS
+//------------------------------------define-------------------------------------------//#define _CRT_SECURE_NO_WARNINGS
 #define _CRT_SECURE_NO_DEPRECATE
 #define _CRT_SECURE_NO_WARNINGS_GLOBALS
 #define _CRT_SECURE_NO_DEPRECATE
 #define _CRT_SECURE_NO_WARNINGS
+#define VALUE 32
+#define INST_FIFO_SIZE 16
+#define NUM_OF_OPCODES 7
+
+//------------------------------------------include--------------------------------------//
 
 #include <stdio.h>
 #include <stdlib.h>
@@ -14,13 +19,13 @@
 #include <errno.h>
 #include <inttypes.h>
 
-#define VALUE 32
-#define INST_FIFO_SIZE 16
-#define NUM_OF_OPCODES 7
 
-char opcodes[NUM_OF_OPCODES][5] = {
-    "LD" , "ST" , "ADD" , "SUB " , "MULT" , "DIV" , "HALT"
-};
+//---------------------------------struture define-----------------------------------------//
+
+typedef struct opcode {
+    const char* key;
+    int value;
+} opcode;
 
 typedef union {
     int d;
@@ -35,11 +40,50 @@ typedef union {
     } raw;
 
 } myfloat;
+
 typedef struct parameter
 {
     char name[20];
     int value;
 } parameter;
+
+
+typedef struct unit {
+    int stage; // 0 = issue, 1 = read operands, 2 = execute complete, 3 = write back
+    int busy;
+}unit;
+
+typedef struct imemin_line {
+
+    opcode opcode;
+    char dst;
+    char src0;
+    char src1;
+    char imm [4];
+    
+
+}imemin_line;
+
+typedef struct fifo {
+    char** queue[INST_FIFO_SIZE];
+    int count;
+    char* name;
+}fifo;
+
+//----------------------------------global tables------------------------------------------//
+char opcodes[NUM_OF_OPCODES][5] = {
+    "LD" , "ST" , "ADD" , "SUB " , "MULT" , "DIV" , "HALT"
+};
+
+
+
+/* build lookup table for instructions */
+
+opcode opcode_table[] = {
+    {"LD",0}, {"ST",1} , {"ADD",2} , {"SUB",3} , {"MULT",4} , {"DIV",5} , {"HALT",6}
+};
+
+
 
 // Global variable initiation
 
@@ -58,10 +102,7 @@ parameter scoreboard_params[13] = {
     {"st_delay", 0}
 };
 
-typedef struct unit {
-    int stage; // 0 = issue, 1 = read operands, 2 = execute complete, 3 = write back
-    int busy;
-}unit;
+
 
 
 unit units[100] = { 0 }; // TODO: think about how many units to define.
@@ -69,7 +110,7 @@ unit units[100] = { 0 }; // TODO: think about how many units to define.
 //char *fifo[INST_FIFO_SIZE];
 //int fifo_count = 0;
 
-unsigned char MEMORY[32][4096] = { 0 };
+unsigned char MEMORY[32][4096] = { 0 }; /// Maybe need to change the size to [8][4096]
 
 char trace_unit[20];
 
@@ -191,11 +232,7 @@ void init_scoreboard_params(FILE * fp_cfg) {
     return;
 }
 
-typedef struct fifo {
-    char** queue[INST_FIFO_SIZE];
-    int count;
-    char* name;
-}fifo;
+
 
 int fifo_is_empty(fifo fifo) {
 // check if the fifo is empty.
@@ -230,8 +267,52 @@ void add_to_fifo(char* instruction[20],fifo fifo) {
     fifo.count++;
 }
 
-char * decrypt_instruction(char * mem_line, char * instruction) {
+opcode find_opcode(opcode* opcode_table,int opcode_value) {
+    for (int i = 0; i <= NUM_OF_OPCODES; i++) {
+        if (opcode_table[i].value == opcode_value) {
+            return opcode_table[i];
+            break;
+        }
+    }
+}
+imemin_line decrypt_instruction(char * mem_line) {
     // returns which instruction it is (add/sub/mul/div/halt)
+    char res, opcode_str[2], dst, src0, src1, imm[4]  ;
+    imemin_line current_instruction;
+    int opcode_int = 0;
+    opcode opcode;
+
+    res = *mem_line;
+    mem_line++;
+    opcode_str[0] = *mem_line;
+    opcode_str[1] = '\0';
+    mem_line++;
+    dst = *mem_line;
+    mem_line++;
+    src0 = *mem_line;
+    mem_line++;
+    src1 = *mem_line;
+    mem_line++;
+    imm[0] = *mem_line;
+    mem_line++;
+    imm[1] = *mem_line;
+    mem_line++;
+    imm[2] = *mem_line;
+    mem_line++;
+    imm[3] = '\0';
+    
+    opcode_int = (int)strtoll(opcode_str, (char**)NULL, 16); // maybe need to add a checker to illeagel opcode number
+    opcode=find_opcode(opcode_table, opcode_int);
+    current_instruction.opcode = opcode;
+    current_instruction.dst = dst;
+    current_instruction.src0 = src0;
+    current_instruction.src1 = src1;
+    strcpy(current_instruction.imm, imm);
+
+    return current_instruction;
+    
+
+
 }
 int check_war() {
 
@@ -240,8 +321,12 @@ void read_registers() {
 
 }
 
-int check_structural(int opcode, char * instruction) {
-    
+/*  This function checks for structural hazard 
+    Returns 0 if no hazard
+*/
+
+int check_structural(opcode opcode) {
+    // 
     return 0;
 }
 void write_result(unit unit_i) {
@@ -295,20 +380,18 @@ int can_issue_instruction() {
 
 }
 
-int get_opcode(char* instruction) {
-
-}
 int instruction_in_fifo(char* instruction) {
 
 }
 
 void run_scoreboard(fifo inst_fifo) {
+    imemin_line instruction_decoded;
 
     while (true) {
-        int opcode = -1, is_structural = 0;
+        int is_structural = 0;
         char* instruction[20];
-
-        int TOTAL_NUM_OF_UNITS = 5; // TODO: after generating the functional units, edit this. maybe need some malloc :(
+        opcode current_opcode;
+        int TOTAL_NUM_OF_UNITS = 5; // TODO: after generating the functional units, edit this. maybe need some malloc :( 
 
         for (int i = 0; i < TOTAL_NUM_OF_UNITS; i++) {
             if (units[i].busy) {
@@ -328,12 +411,13 @@ void run_scoreboard(fifo inst_fifo) {
         if (fifo_is_empty(inst_fifo)) {
             // to ask Gadi - what if getting halt and there are still commands to execute that 
             // didn't finish yet?
-            decrypt_instruction(MEMORY[mem_index], instruction);
-            opcode = get_opcode(instruction);
+            instruction_decoded=decrypt_instruction(MEMORY[mem_index]);
+            current_opcode = instruction_decoded.opcode;
+
         }
         
-        if (opcode == 6) break; // halt == 6
-        if ((is_structural=check_structural(opcode, instruction)) == 1) { // All units full
+        if (current_opcode.value == 6) break; // halt == 6
+        if ((is_structural = check_structural(current_opcode)== 1) ){ // All units full
             if (!instruction_in_fifo(instruction)) {
                 add_to_fifo(instruction,inst_fifo);
             }
@@ -352,7 +436,7 @@ void run_scoreboard(fifo inst_fifo) {
 
 int main(int argc, char* argv[]) {
     
-   
+   // initiate instructions fifo
     fifo inst_fifo = {{0},0 , "instructions"};
 
     // Check num of arguments 
