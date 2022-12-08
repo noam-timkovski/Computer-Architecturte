@@ -1,7 +1,6 @@
 #pragma once
 
 //------------------------------------define-------------------------------------------//#define _CRT_SECURE_NO_WARNINGS
-#define _CRT_SECURE_NO_DEPRECATE
 #define _CRT_SECURE_NO_WARNINGS_GLOBALS
 #define _CRT_SECURE_NO_DEPRECATE
 #define _CRT_SECURE_NO_WARNINGS
@@ -18,7 +17,7 @@
 #include<stdbool.h>
 #include <errno.h>
 #include <inttypes.h>
-
+#include <ctype.h>
 
 //---------------------------------struture define-----------------------------------------//
 
@@ -43,14 +42,24 @@ typedef union {
 
 typedef struct parameter
 {
-    char name[20];
-    int value;
+    char* name;
+    int amount;
+    int delay;
 } parameter;
 
+//typedef struct sb_params {
+//    parameter add;
+//    parameter sub;
+//    parameter mul;
+//    parameter div;
+//    parameter load;
+//    parameter store;
+//}sb_params;
 
 typedef struct unit {
     int stage; // 0 = issue, 1 = read operands, 2 = execute complete, 3 = write back
     int busy;
+    int latency;
 }unit;
 
 typedef struct imemin_line {
@@ -87,22 +96,28 @@ opcode opcode_table[] = {
 
 // Global variable initiation
 
-parameter scoreboard_params[13] = {
-    {"add_nr_units", 0},
-    {"sub_nr_units", 0},
-    {"mul_nr_units", 0},
-    {"div_nr_units", 0},
-    {"ld_nr_units", 0},
-    {"st_nr_units", 0},
-    {"add_delay", 0},
-    {"sub_delay", 0},
-    {"mul_delay", 0},
-    {"div_delay", 0},
-    {"ld_delay", 0},
-    {"st_delay", 0}
+parameter scoreboard_params[6] = {
+    {"add", 0,0},
+    {"sub", 0,0},
+    {"mul", 0,0},
+    {"div", 0,0},
+    {"ld", 0,0},
+    {"st", 0,0},
+
 };
 
+//sb_params sb_paramerts;
+//--------------------------------------units-------------------------------------------------------//
 
+unit add_u = {0,0};
+
+void init_units(parameter scoreboard_params[6]) {
+    for (int j = 0; j++; j < 6) {
+        for (int i = 0; i++; i < scoreboard_params[j].amount) {
+            char* i;
+        }
+    }
+}
 
 
 unit units[100] = { 0 }; // TODO: think about how many units to define.
@@ -206,27 +221,38 @@ void read_memin(FILE* fp_memin) {
 }
 
 void init_scoreboard_params(FILE * fp_cfg) {
-    char buffer[500]="add_nr_units = 2";
-    char* param;
-    char* value;
-    char* line;
+    char buffer[500] = { 0 };
+    char param[20] = { 0 };
+    char value[2] = { 0 };
+    char line;
     int value_integer;
     int i = 0;
     while (fgets(buffer, 500, fp_cfg)) {
         printf("%s\n", buffer);
-        line = strtok(buffer, "\n");
-        param = strtok(buffer, " = "); // TODO : consider handle spaces in input file.
-        value = strtok(NULL, " = ");
+        if (sscanf(buffer, "%[^=]=%d", param, &value_integer) > 0) {
+        };
+        //line = strtok(buffer, "\n");
+        //param = strtok(buffer, " = "); // TODO : consider handle spaces in input file.
+        //value = strtok(NULL, " = ");
         //value[strlen(value)] = '\0';
-        
-        strcpy(scoreboard_params[i].name, param);
-
-        if (strcmp(param, "trace_unit") == 0) {
-            strcpy(trace_unit, value);
-            if (i == 12) return; // then this is the last line in the input file.
+        if (strcmp(param, "trace_unit ") == 0) {
+            strcpy(trace_unit, param);
+            //printf("trace_unit = "trace_unit);
+            return;
         }
-        sscanf(value, "%d", &value_integer);
-        scoreboard_params[i].value = value_integer;
+        if (i < 6) {
+            scoreboard_params[i].amount = value_integer;
+        }
+        else if (i<12) {
+            scoreboard_params[i-6].delay = value_integer;
+        }
+
+        //if (strcmp(param, "trace_unit") == 0) {
+        //    strcpy(trace_unit, value);
+        //    if (i == 12) return; // then this is the last line in the input file.
+        //}
+       // sscanf(value, "%d", &value_integer);
+       //scoreboard_params[i].value = value_integer;
         i += 1;
     }
     return;
@@ -243,11 +269,11 @@ int fifo_is_empty(fifo fifo) {
 
 }
 
-int empty_fifo(fifo fifo) {
+char * empty_fifo(fifo fifo) {
     // return the first var in the queue , removes it and promote the rest of the queue forwoard .
     if (fifo.count == 0) {
         printf("No elements to extract from queue \n");
-        return 1;
+        return "Error";
     }
     char* res = fifo.queue[0];
     for (int i = 0; i < fifo.count - 1; i++) {
@@ -260,7 +286,7 @@ int empty_fifo(fifo fifo) {
 
 void add_to_fifo(char* instruction[20],fifo fifo) {
     if (fifo.count == INST_FIFO_SIZE) {
-        fprintf(fifo.name, "FIFO IS FULL");
+        printf("FIFO IS FULL");
         return;
     }
     fifo.queue[fifo.count] = instruction;
@@ -372,7 +398,10 @@ void continue_execution(unit unit_i) {
 };
 
 int unit_is_busy(unit unit_i) {
-
+    if (unit_i.busy) {
+        return 1;
+    }
+    return 0;
 }
 
 
@@ -390,7 +419,7 @@ void run_scoreboard(fifo inst_fifo) {
     while (true) {
         int is_structural = 0;
         char* instruction[20];
-        opcode current_opcode;
+        opcode current_opcode = {"",0};
         int TOTAL_NUM_OF_UNITS = 5; // TODO: after generating the functional units, edit this. maybe need some malloc :( 
 
         for (int i = 0; i < TOTAL_NUM_OF_UNITS; i++) {
@@ -438,7 +467,11 @@ int main(int argc, char* argv[]) {
     
    // initiate instructions fifo
     fifo inst_fifo = {{0},0 , "instructions"};
-
+    parameter* scoreboard_params_p;
+    scoreboard_params_p = &scoreboard_params;
+    for (int i = 0; i < argc; i++) {
+        printf("argv[%d] : %s\n", i, argv[i]);
+    }
     // Check num of arguments 
     
     /*
@@ -461,25 +494,31 @@ int main(int argc, char* argv[]) {
     }
 
     // Handle input files
-    FILE* fp_cfg;
-    FILE* fp_memin;
+    FILE *fp_cfg, *fp_memin;
+    //FILE* fp_memin;
 
-    fp_cfg = fopen("cfg.txt", "r"); //argv[1]
-    if (fp_cfg == NULL) return -1;
+    if (argc < 2 || !(fp_cfg = fopen(argv[1], "r"))) {
+        exit(EXIT_FAILURE);
+    }
 
-    init_scoreboard_params(fp_cfg);
+    //fp_cfg = fopen("cfg.txt", "r"); //argv[1]
+    //if (fp_cfg == NULL) return -1;
+
+    init_scoreboard_params(fp_cfg,&scoreboard_params_p);
 
     fclose(fp_cfg);
 
-    fp_memin = fopen("memin.txt", "r"); //argv[2]
-    if (fp_memin == NULL) return -1;
+    if (argc < 3 || !(fp_memin = fopen(argv[2], "r"))) {
+        exit(EXIT_FAILURE);
+    }
+    //if (fp_memin == NULL) return -1;
     read_memin(fp_memin);
 
     fclose(fp_memin);
 
     //Sanity check for scoreboard params and memory
-    for (int i = 0; i < 12; i++) {
-        printf("%s system param equals %d \n", scoreboard_params[i].name, scoreboard_params[i].value);
+    for (int i = 0; i < 5; i++) {
+        printf("%s system param equals %d \n", scoreboard_params[i].name, scoreboard_params[i].amount);
     }
     printf("trace unit: %s\n", trace_unit);
 

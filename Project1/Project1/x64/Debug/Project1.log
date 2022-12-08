@@ -1,18 +1,21 @@
 ﻿  main.c
-C:\Users\noamt\OneDrive\Documents\GitHub\Computer-Architecturte\Project1\Project1\main.c(153,20): warning C4244: '=': conversion from 'int' to 'float', possible loss of data
-C:\Users\noamt\OneDrive\Documents\GitHub\Computer-Architecturte\Project1\Project1\main.c(257,15): warning C4047: 'return': 'int' differs in levels of indirection from 'char *'
-C:\Users\noamt\OneDrive\Documents\GitHub\Computer-Architecturte\Project1\Project1\main.c(252,11): warning C4047: 'initializing': 'char *' differs in levels of indirection from 'char **'
-C:\Users\noamt\OneDrive\Documents\GitHub\Computer-Architecturte\Project1\Project1\main.c(263,26): warning C4133: 'function': incompatible types - from 'char *' to 'FILE *const '
-C:\Users\noamt\OneDrive\Documents\GitHub\Computer-Architecturte\Project1\Project1\main.c(403,37): warning C4047: 'function': 'int' differs in levels of indirection from 'char **'
-C:\Users\noamt\OneDrive\Documents\GitHub\Computer-Architecturte\Project1\Project1\main.c(403,34): warning C4024: 'issue': different types for formal and actual parameter 1
-C:\Users\noamt\OneDrive\Documents\GitHub\Computer-Architecturte\Project1\Project1\main.c(421,49): warning C4047: 'function': 'char *' differs in levels of indirection from 'char *[20]'
-C:\Users\noamt\OneDrive\Documents\GitHub\Computer-Architecturte\Project1\Project1\main.c(421,38): warning C4024: 'instruction_in_fifo': different types for formal and actual parameter 1
-C:\Users\noamt\OneDrive\Documents\GitHub\Computer-Architecturte\Project1\Project1\main.c(427,26): warning C4047: 'function': 'int' differs in levels of indirection from 'char *[20]'
-C:\Users\noamt\OneDrive\Documents\GitHub\Computer-Architecturte\Project1\Project1\main.c(427,15): warning C4024: 'issue': different types for formal and actual parameter 1
-C:\Users\noamt\OneDrive\Documents\GitHub\Computer-Architecturte\Project1\Project1\main.c(244): warning C4715: 'fifo_is_empty': not all control paths return a value
-C:\Users\noamt\OneDrive\Documents\GitHub\Computer-Architecturte\Project1\Project1\main.c(277): warning C4715: 'find_opcode': not all control paths return a value
-C:\Users\noamt\OneDrive\Documents\GitHub\Computer-Architecturte\Project1\Project1\main.c(319): warning C4716: 'check_war': must return a value
-C:\Users\noamt\OneDrive\Documents\GitHub\Computer-Architecturte\Project1\Project1\main.c(376): warning C4716: 'unit_is_busy': must return a value
-C:\Users\noamt\OneDrive\Documents\GitHub\Computer-Architecturte\Project1\Project1\main.c(381): warning C4716: 'can_issue_instruction': must return a value
-C:\Users\noamt\OneDrive\Documents\GitHub\Computer-Architecturte\Project1\Project1\main.c(385): warning C4716: 'instruction_in_fifo': must return a value
+C:\Users\noamt\OneDrive\Documents\GitHub\Computer-Architecturte\Project1\Project1\main.c(115,28): warning C4552: '<': result of expression not used
+C:\Users\noamt\OneDrive\Documents\GitHub\Computer-Architecturte\Project1\Project1\main.c(116,32): warning C4552: '<': result of expression not used
+C:\Users\noamt\OneDrive\Documents\GitHub\Computer-Architecturte\Project1\Project1\main.c(117,19): warning C4101: 'i': unreferenced local variable
+C:\Users\noamt\OneDrive\Documents\GitHub\Computer-Architecturte\Project1\Project1\main.c(168,20): warning C4244: '=': conversion from 'int' to 'float', possible loss of data
+C:\Users\noamt\OneDrive\Documents\GitHub\Computer-Architecturte\Project1\Project1\main.c(227,10): warning C4101: 'line': unreferenced local variable
+C:\Users\noamt\OneDrive\Documents\GitHub\Computer-Architecturte\Project1\Project1\main.c(278,11): warning C4047: 'initializing': 'char *' differs in levels of indirection from 'char **'
+C:\Users\noamt\OneDrive\Documents\GitHub\Computer-Architecturte\Project1\Project1\main.c(432,37): warning C4047: 'function': 'int' differs in levels of indirection from 'char **'
+C:\Users\noamt\OneDrive\Documents\GitHub\Computer-Architecturte\Project1\Project1\main.c(432,34): warning C4024: 'issue': different types for formal and actual parameter 1
+C:\Users\noamt\OneDrive\Documents\GitHub\Computer-Architecturte\Project1\Project1\main.c(450,49): warning C4047: 'function': 'char *' differs in levels of indirection from 'char *[20]'
+C:\Users\noamt\OneDrive\Documents\GitHub\Computer-Architecturte\Project1\Project1\main.c(450,38): warning C4024: 'instruction_in_fifo': different types for formal and actual parameter 1
+C:\Users\noamt\OneDrive\Documents\GitHub\Computer-Architecturte\Project1\Project1\main.c(456,26): warning C4047: 'function': 'int' differs in levels of indirection from 'char *[20]'
+C:\Users\noamt\OneDrive\Documents\GitHub\Computer-Architecturte\Project1\Project1\main.c(456,15): warning C4024: 'issue': different types for formal and actual parameter 1
+C:\Users\noamt\OneDrive\Documents\GitHub\Computer-Architecturte\Project1\Project1\main.c(471,45): warning C4047: '=': 'parameter *' differs in levels of indirection from 'parameter (*)[6]'
+C:\Users\noamt\OneDrive\Documents\GitHub\Computer-Architecturte\Project1\Project1\main.c(507,35): warning C4020: 'init_scoreboard_params': too many actual parameters
+C:\Users\noamt\OneDrive\Documents\GitHub\Computer-Architecturte\Project1\Project1\main.c(270): warning C4715: 'fifo_is_empty': not all control paths return a value
+C:\Users\noamt\OneDrive\Documents\GitHub\Computer-Architecturte\Project1\Project1\main.c(303): warning C4715: 'find_opcode': not all control paths return a value
+C:\Users\noamt\OneDrive\Documents\GitHub\Computer-Architecturte\Project1\Project1\main.c(345): warning C4716: 'check_war': must return a value
+C:\Users\noamt\OneDrive\Documents\GitHub\Computer-Architecturte\Project1\Project1\main.c(410): warning C4716: 'can_issue_instruction': must return a value
+C:\Users\noamt\OneDrive\Documents\GitHub\Computer-Architecturte\Project1\Project1\main.c(414): warning C4716: 'instruction_in_fifo': must return a value
   Project1.vcxproj -> C:\Users\noamt\OneDrive\Documents\GitHub\Computer-Architecturte\Project1\x64\Debug\Project1.exe
