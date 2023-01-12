@@ -93,7 +93,8 @@ typedef struct imemin_line {
     char src0;
     char src1;
     char imm[4];
-   
+    char test[100];
+
 
 
 }imemin_line;
@@ -285,10 +286,10 @@ void read_memin(FILE* fp_memin) {
     while (fgets(buffer, 500, fp_memin)) {
         //printf("%s\n", buffer);
         line = strtok(buffer, "\n");
-  /*      char dest[33];
-        for (int i = 0; line[i]; i++) {
-            line[i] = tolower(line[i]);
-        }*/
+        /*      char dest[33];
+              for (int i = 0; line[i]; i++) {
+                  line[i] = tolower(line[i]);
+              }*/
         strcpy(MEMORY[i], line);
         i += 1;
     }
@@ -338,18 +339,48 @@ void init_scoreboard_params(FILE* fp_cfg) {
     return;
 }
 
+
+//void init(fifo* q) {
+//    q->front = NULL;
+//    q->rear = NULL;
+//    q->count = 0;
+//
+//}
+
 /*
 *  check if the fifo is empty.
 */
-int fifo_is_empty(fifo *fifo) {
-    
-    return(fifo->front== NULL);       
-    
+int fifo_is_empty(fifo* fifo) {
+
+    return(fifo->front == NULL);
+
 }
 
+//char* empty_fifo(fifo fifo) {
+//    // return the first var in the queue , removes it and promote the rest of the queue forwoard .
+//    if (fifo.count == 0) {
+//        printf("no elements to extract from queue \n");
+//        return "error";
+//    }
+//    char* res = fifo.queue[0];
+//    for (int i = 0; i < fifo.count - 1; i++) {
+//        fifo.queue[i] = fifo.queue[i + 1];
+//    }
+//    fifo.count--;
+//    return res;
+//
+//}
+//
+//void add_to_fifo(char **instruction[32], fifo fifo) {
+//    if (fifo.count == INST_FIFO_SIZE) {
+//        printf("fifo is full");
+//        return;
+//    }
+//    *fifo.queue[fifo.count] = *instruction;
+//    fifo.count++;
+//}
 
-
-void add_to_fifo(fifo * queue, char* string) {
+void add_to_fifo(fifo* queue, char* string) {
     instruction* new_node = (instruction*)malloc(sizeof(instruction));
     strcpy(new_node->string, string);
     new_node->next = NULL;
@@ -366,7 +397,7 @@ void add_to_fifo(fifo * queue, char* string) {
     printf("fifo size is :%d\n", queue->size);
 }
 
-void print_queue(fifo * queue) {
+void print_queue(fifo* queue) {
     instruction* current = queue->front;
     printf("This is the fifo content:\n");
     while (current != NULL) {
@@ -393,10 +424,10 @@ void empty_fifo(fifo* queue) {
     //strcpy(string, temp->string);
     free(temp);
     queue->size -= 1;
-    return ;
+    return;
 }
 
-int is_full(fifo * queue) {
+int is_full(fifo* queue) {
     // Assume that the queue is full when there are QUEUE_SIZE - 1 elements
     // in the queue, since the rear pointer will wrap around to the front of
     // the array when it reaches the end.
@@ -419,6 +450,7 @@ imemin_line decrypt_instruction(char* mem_line) {
     imemin_line current_instruction;
     int opcode_int = 0;
     opcode opcode;
+    strcpy(current_instruction.test, mem_line);
 
     res = *mem_line;
     mem_line++;
@@ -576,12 +608,12 @@ void write_result(unit* unit_i) {
 
 
         float new_reg_value = 0;
-        
+
         long hex_value = strtol(memory_value, &ptr, 16);
-        float float_value ;
+        float float_value;
         memcpy(&float_value, &hex_value, sizeof(float));
         printf("Floating point value: %f\n", float_value);
- 
+
         //// convert from hex to binary 
         regfile[unit_i->fi.index].d = float_value;
 
@@ -593,7 +625,7 @@ void write_result(unit* unit_i) {
         memcpy(&hex_value, &regfile[unit_i->fk.index].d, sizeof(long));
         //printf("Floating point value: %f\n", float_value);  
         st_memory_index = strtol(unit_i->imm, &ptr, 16);
-        
+
         sprintf(hex_str, "%08lx", hex_value);
 
         strcpy(MEMORY[st_memory_index], hex_str);
@@ -685,7 +717,15 @@ void read_operands(unit* unit_i) {
 
 }
 
-
+int find_index(char* opcode) {
+    int i = 0;
+    for (int i = 0; i < dmemin_depth; i++) {
+        if (strcmp(opcode, MEMORY[i]) == 0) {
+            return i;
+        }
+    }
+    
+}
 void update_unit(unit** head, imemin_line instruction) {
 
 
@@ -697,7 +737,7 @@ void update_unit(unit** head, imemin_line instruction) {
         }
     }
 
-    int dst_index = instruction.dst-'0';
+    int dst_index = instruction.dst - '0';
     if (dst_index > 9) {
         dst_index -= 7;
     }
@@ -709,7 +749,7 @@ void update_unit(unit** head, imemin_line instruction) {
     if (src1_index > 9) {
         src1_index -= 7;
     }
-    
+
     iter->stage = 1;
     iter->busy = 1;
     iter->op = instruction.opcode;
@@ -758,7 +798,8 @@ void update_unit(unit** head, imemin_line instruction) {
 
     //update instruction trace
 
-    iter->instruction_id = mem_index;
+    
+    iter->instruction_id = find_index(instruction.test);
     char buf_traceinst[1000];
     char cycle_issued[10];
     strcpy(buf_traceinst, INSTRUCTION_TRACE[iter->instruction_id]);
@@ -933,7 +974,7 @@ void continue_execution(unit* unit_i) {
         }
         else { // all the rest of the instructions
             if ((strcmp(regfile[src0_index].unit_name, new_unit_name) == 0 || strcmp(regfile[src0_index].unit_name, "") == 0) && (regfile[src1_index].just_freed == 0) &&
-                (strcmp(regfile[src1_index].unit_name, new_unit_name) == 0 ||strcmp(regfile[src1_index].unit_name, "") == 0 && regfile[src0_index].just_freed == 0 )) { // src0 and src1 reg is up to date
+                (strcmp(regfile[src1_index].unit_name, new_unit_name) == 0 || strcmp(regfile[src1_index].unit_name, "") == 0 && regfile[src0_index].just_freed == 0)) { // src0 and src1 reg is up to date
                 read_operands(unit_i);
                 execute(unit_i);
             }
@@ -1015,18 +1056,18 @@ int run_if_busy(unit** head) {
 }
 void d_to_q() {
     for (int i = 0; i < 16; i++) {
-       regfile[i].q = regfile[i].d;
+        regfile[i].q = regfile[i].d;
     }
 }
 
-char* peek(fifo * queue) {
+char* peek(fifo* queue) {
     if (queue->front == NULL) {
         return NULL;
     }
     return queue->front->string;
 }
 
-void run_scoreboard(FILE* dmemout, FILE* regout,fifo inst_fifo, unit** add_units, unit** sub_units, unit** mul_units, unit** div_units, unit** ld_units, unit** st_units) {
+void run_scoreboard(FILE* dmemout, FILE* regout, fifo inst_fifo, unit** add_units, unit** sub_units, unit** mul_units, unit** div_units, unit** ld_units, unit** st_units) {
     imemin_line instruction_decoded;
     imemin_line next_instruction;
     bool halt_flag = FALSE;
@@ -1041,7 +1082,7 @@ void run_scoreboard(FILE* dmemout, FILE* regout,fifo inst_fifo, unit** add_units
         for (int i = 0; i < 16; i++) {
             regfile[i].just_freed = 0;
         }
-       
+
         if (halt_flag == FALSE) {
             run_if_busy(add_units);
             run_if_busy(sub_units);
@@ -1053,24 +1094,24 @@ void run_scoreboard(FILE* dmemout, FILE* regout,fifo inst_fifo, unit** add_units
         else {
             if ((run_if_busy(add_units) + run_if_busy(sub_units) + run_if_busy(mul_units) + run_if_busy(div_units) + run_if_busy(ld_units) + run_if_busy(st_units)) == 0) {
                 break;
-            } 
-            
+            }
+
         }
 
-        
+
         if (!fifo_is_empty(&inst_fifo)) { // there is a waiting instruction in the FIFO
             //char* fifo_output;
-            char* fifo_output=peek(&inst_fifo);
+            char* fifo_output = peek(&inst_fifo);
             printf("Head of the queue is: %s\n", fifo_output);
-            instruction_decoded= decrypt_instruction(fifo_output);
+            instruction_decoded = decrypt_instruction(fifo_output);
             if (instruction_decoded.opcode.key == 0) {
                 printf("load instruction");
             }
-       
+
             if (can_issue_instruction(instruction_decoded, add_units, sub_units, mul_units, div_units, ld_units, st_units)) { // check if we can issue the first instruction in the FIFO
                 issue(instruction_decoded, add_units, sub_units, mul_units, div_units, ld_units, st_units);
                 empty_fifo(&inst_fifo);
-                next_instruction=decrypt_instruction(MEMORY[mem_index]);
+                next_instruction = decrypt_instruction(MEMORY[mem_index]);
                 if (next_instruction.opcode.value != 6) {
                     if (!is_full(&inst_fifo)) {
                         add_to_fifo(&inst_fifo, MEMORY[mem_index]);
@@ -1084,14 +1125,14 @@ void run_scoreboard(FILE* dmemout, FILE* regout,fifo inst_fifo, unit** add_units
                         clock += 1;
                         continue;
                     }
-                   
+
                 }
                 else {
                     clock += 1;
                     halt_flag = TRUE;
                     continue;
                 }
-                
+
             }
             else {
                 next_instruction = decrypt_instruction(MEMORY[mem_index]);
@@ -1113,13 +1154,13 @@ void run_scoreboard(FILE* dmemout, FILE* regout,fifo inst_fifo, unit** add_units
                     clock += 1;
                     continue;
                 }
-               
+
             }
         }
         else { // FIFO is empty 
             instruction_decoded = decrypt_instruction(MEMORY[mem_index]);
             //current_opcode = instruction_decoded.opcode;
-            if (instruction_decoded.opcode.value == 6 || halt_flag== TRUE) { // TODO: let the previous instructions run to complete before exiting.
+            if (instruction_decoded.opcode.value == 6 || halt_flag == TRUE) { // TODO: let the previous instructions run to complete before exiting.
                 printf("opcode value is :%d ! Finishing the current commands and exiting. .\n", current_opcode.value);
                 halt_flag = TRUE; // halt == 6
 
@@ -1138,9 +1179,9 @@ void run_scoreboard(FILE* dmemout, FILE* regout,fifo inst_fifo, unit** add_units
                 clock += 1;
                 mem_index += 1;
             }
-        }       
+        }
 
-     
+
     }
 
     create_dmemout(dmemout);
@@ -1257,7 +1298,7 @@ void write_traceunit() {
 int main(int argc, char* argv[]) {
 
     // initiate instructions fifo
-    fifo inst_fifo ;
+    fifo inst_fifo;
     inst_fifo.front = NULL;
     inst_fifo.rear = NULL;
     inst_fifo.size = 0;
@@ -1326,7 +1367,7 @@ int main(int argc, char* argv[]) {
 
 
     // Read memin file
-   
+
     if (fp_memin == NULL) {
         printf("\nMissing memin file, exiting");
         exit(EXIT_FAILURE);
@@ -1349,7 +1390,7 @@ int main(int argc, char* argv[]) {
 
     FILE* fp_memout, * fp_regout, * fp_traceinst, * fp_traceunit;
 
-    run_scoreboard(dmemout,regout, inst_fifo, &add_units, &sub_units, &mul_units, &div_units, &ld_units, &st_units);
+    run_scoreboard(dmemout, regout, inst_fifo, &add_units, &sub_units, &mul_units, &div_units, &ld_units, &st_units);
 
     write_traceinst();
     write_traceunit();
