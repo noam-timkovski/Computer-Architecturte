@@ -49,7 +49,8 @@ typedef struct {
     float d;
     float q;
     //float f;
-    char  unit_name[20];
+    char  unit_name_d[20];
+    char  unit_name_q[20];
     int just_freed; // to make sure that if write_back happens at cycle X so read_operands of other instruction will happen at cycle X+1
 } myreg;
 
@@ -60,6 +61,18 @@ typedef struct parameter
     int delay;
 } parameter;
 
+typedef struct imemin_line {
+
+    opcode opcode;
+    char dst;
+    char src0;
+    char src1;
+    char imm[4];
+    char string_instruction[100];
+
+
+
+}imemin_line;
 
 
 typedef struct unit {
@@ -72,32 +85,31 @@ typedef struct unit {
     myreg fi;
     myreg fj;
     myreg fk;
-    bool  rj;
-    bool  rk;
-    char qj[20];
-    char qk[20];
+    bool  rj_d;
+    bool  rj_q;
+    bool  rk_d;
+    bool  rk_q;
+    char qj_d[20];
+    char qj_q[20];
+    char qk_d[20];
+    char qk_q[20];
     char imm[4];
     int cycles_left;
     int instruction_id;
     int trace;
     int first_execute;
-
+    imemin_line instruction;
     struct unit* next;
 }unit;
 
-
-typedef struct imemin_line {
-
-    opcode opcode;
-    char dst;
-    char src0;
-    char src1;
-    char imm[4];
-    char test[100];
+unit* add_units = NULL;
+unit* sub_units = NULL;
+unit* mul_units = NULL;
+unit* div_units = NULL;
+unit* ld_units = NULL;
+unit* st_units = NULL;
 
 
-
-}imemin_line;
 
 //typedef struct fifo {
 //    imemin_line* front;
@@ -237,14 +249,14 @@ void init_regfile(myreg* regfile) {
         regfile[i].d = i;
         regfile[i].q = 0;
         regfile[i].just_freed = 0;
-        strcpy(regfile[i].unit_name, "");
+        strcpy(regfile[i].unit_name_d, "");
     }
     // Null register
     regfile[16].index = 0;
     //regfile[16].f = 0;
     regfile[16].d = 0;
     regfile[16].q = 0;
-    strcpy(regfile[16].unit_name, "");
+    strcpy(regfile[16].unit_name_d, "");
 
 }
 
@@ -286,10 +298,10 @@ void read_memin(FILE* fp_memin) {
     while (fgets(buffer, 500, fp_memin)) {
         //printf("%s\n", buffer);
         line = strtok(buffer, "\n");
-        /*      char dest[33];
-              for (int i = 0; line[i]; i++) {
-                  line[i] = tolower(line[i]);
-              }*/
+         char dest[33];
+         for (int i = 0; line[i]; i++) {
+             line[i] = tolower(line[i]);
+         }
         strcpy(MEMORY[i], line);
         i += 1;
     }
@@ -450,7 +462,7 @@ imemin_line decrypt_instruction(char* mem_line) {
     imemin_line current_instruction;
     int opcode_int = 0;
     opcode opcode;
-    strcpy(current_instruction.test, mem_line);
+    strcpy(current_instruction.string_instruction, mem_line);
 
     res = *mem_line;
     mem_line++;
@@ -484,12 +496,103 @@ imemin_line decrypt_instruction(char* mem_line) {
 
 
 }
-int check_war() {
+int this_is_me(unit* i) {
+    unit* iter_add, * iter_sub, * iter_mul, * iter_div, * iter_ld, * iter_st;
+    iter_add = add_units;
+    iter_sub = sub_units;
+    iter_mul = mul_units;
+    iter_div = div_units;
+    iter_ld = ld_units;
+    iter_st = st_units;
+
 
 }
+int check_war(unit* unit_i) { // check that the destination register doesn't appear in one of the other units src registers.
+    unit* iter_add, * iter_sub, * iter_mul, * iter_div, * iter_ld, * iter_st;
+    
+    
+    iter_add = add_units;
+    iter_sub = sub_units;
+    iter_mul = mul_units;   
+    iter_div = div_units;
+    iter_ld = ld_units;
+    iter_st = st_units;
+
+
+
+
+
+    while (iter_add != NULL) {
+
+        if (strcmp(unit_i->type,iter_add->type)==0 && unit_i->index!=iter_add->index && find_index(iter_add->instruction.string_instruction) < find_index(unit_i->instruction.string_instruction)) {
+            if (iter_add->fj.index == unit_i->fi.index || iter_add->fk.index == unit_i->fi.index) {
+                return 1;
+            }
+            
+        }
+        iter_add = iter_add->next;
+    }
+        
+    while (iter_sub != NULL) {
+        if (strcmp(unit_i->type, iter_sub->type) == 0 && unit_i->index != iter_sub->index && find_index(iter_sub->instruction.string_instruction) < find_index(unit_i->instruction.string_instruction)) {
+            if (iter_sub->fj.index == unit_i->fi.index || iter_sub->fk.index == unit_i->fi.index) {
+                return 1;
+            }
+           
+        }
+        iter_sub = iter_sub->next;
+        
+    }
+
+    while (iter_mul != NULL) {
+        if (strcmp(unit_i->type, iter_mul->type) == 0 && unit_i->index != iter_mul->index && find_index(iter_mul->instruction.string_instruction) < find_index(unit_i->instruction.string_instruction)) {
+            if (iter_mul->fj.index == unit_i->fi.index || iter_mul->fk.index == unit_i->fi.index) {
+                return 1;
+            }
+            
+        }
+        iter_mul = iter_mul->next;
+    }
+
+    while (iter_div != NULL) {
+        if (strcmp(unit_i->type, iter_div->type) == 0 && unit_i->index != iter_div->index && find_index(iter_div->instruction.string_instruction) < find_index(unit_i->instruction.string_instruction)) {
+            if (iter_div->fj.index == unit_i->fi.index || iter_div->fk.index == unit_i->fi.index) {
+                return 1;
+            }
+            
+        }
+        iter_div = iter_div->next;
+        
+    }
+
+    while (iter_ld != NULL) {
+        if (strcmp(unit_i->type, iter_ld->type) == 0 && unit_i->index != iter_ld->index && find_index(iter_ld->instruction.string_instruction) < find_index(unit_i->instruction.string_instruction)) {
+            if (iter_ld->fj.index == unit_i->fi.index || iter_ld->fk.index == unit_i->fi.index) {
+                return 1;
+            }
+           
+        }
+        iter_ld = iter_ld->next;
+       
+    }
+    while (iter_st != NULL) {
+        if (strcmp(unit_i->type, iter_st->type) == 0 && unit_i->index != iter_st->index && find_index(iter_st->instruction.string_instruction) < find_index(unit_i->instruction.string_instruction)) {
+            if (iter_st->fj.index == unit_i->fi.index || iter_st->fk.index == unit_i->fi.index) {
+                return 1;
+            }
+            
+        }
+        iter_st = iter_st->next;
+    }
+    return 0;
+
+
+}
+
 void read_registers() {
-
 }
+
+
 
 /*  This function checks for structural hazard
     Returns 0 if no hazard
@@ -531,16 +634,114 @@ int structural_hazard(opcode opcode, unit** add_units, unit** sub_units, unit** 
 
     return 1;
 }
+void free_ri(unit* unit_i) {
+    unit* iter_add, * iter_sub, * iter_mul, * iter_div, * iter_ld, * iter_st;
+
+
+    iter_add = add_units;
+    iter_sub = sub_units;
+    iter_mul = mul_units;
+    iter_div = div_units;
+    iter_ld = ld_units;
+    iter_st = st_units;
+
+
+
+
+
+    while (iter_add != NULL) {
+
+        if (iter_add->busy==1) {
+            if (iter_add->fj.index == unit_i->fi.index ) {
+                iter_add->rj_d = YES;
+            }
+            if (iter_add->fk.index == unit_i->fi.index) {
+                iter_add->rk_d = YES;
+            }
+
+        }
+        iter_add = iter_add->next;
+    }
+
+    while (iter_sub != NULL) {
+        if (iter_sub->busy==1) {
+            if (iter_sub->fj.index == unit_i->fi.index) {
+                iter_sub->rj_d = YES;
+            }
+            if (iter_sub->fk.index == unit_i->fi.index) {
+                iter_sub->rk_d = YES;
+            }
+
+        }
+        iter_sub = iter_sub->next;
+
+    }
+
+    while (iter_mul != NULL) {
+        if (iter_mul->busy == 1) {
+            if (iter_mul->fj.index == unit_i->fi.index) {
+                iter_mul->rj_d = YES;
+            }
+            if (iter_mul->fk.index == unit_i->fi.index) {
+                iter_mul->rk_d = YES;
+            }
+
+        }
+        iter_mul = iter_mul->next;
+    }
+
+    while (iter_div != NULL) {
+        if (iter_div->busy == 1) {
+            if (iter_div->fj.index == unit_i->fi.index) {
+                iter_div->rj_d = YES;
+            }
+            if (iter_div->fk.index == unit_i->fi.index) {
+                iter_div->rk_d = YES;
+            }
+
+        }
+        iter_div = iter_div->next;
+
+    }
+
+    while (iter_ld != NULL) {
+        if (iter_ld->busy == 1) {
+            if (iter_ld->fj.index == unit_i->fi.index) {
+                iter_ld->rj_d = YES;
+            }
+            if (iter_ld->fk.index == unit_i->fi.index) {
+                iter_ld->rk_d = YES;
+            }
+
+        }
+        iter_ld = iter_ld->next;
+
+    }
+    while (iter_st != NULL) {
+        if (iter_st->busy == 1) {
+            if (iter_st->fj.index == unit_i->fi.index) {
+                iter_st->rj_d = YES;
+            }
+            if (iter_st->fk.index == unit_i->fi.index) {
+                iter_st->rk_d = YES;
+            }
+
+        }
+        iter_st = iter_st->next;
+    }
+    return ;
+
+}
 void write_result(unit* unit_i) {
-    unit_i->rj = YES;
-    unit_i->rk = YES;
+    unit_i->rj_d = YES;
+    unit_i->rk_d = YES;
     unit_i->busy = NO;
     int st_memory_index = 0;
     char st_memory_value[10];
     char hex_str[17];
     if (strcmp(unit_i->type, "ADD") == 0) {
         //unit_i->fi.d = unit_i->fj.f + unit_i->fk.f;
-        regfile[unit_i->fi.index].d = (int)regfile[unit_i->fj.index].d + (int)regfile[unit_i->fk.index].d;
+        regfile[unit_i->fi.index].d = regfile[unit_i->fj.index].d + regfile[unit_i->fk.index].d;
     }
     else if (strcmp(unit_i->type, "SUB") == 0) {
 
@@ -651,13 +852,14 @@ void write_result(unit* unit_i) {
     int src1_index = unit_i->fk.index;
 
     if (unit_i->op.value == 1) { // ST instruction
-        strcpy(regfile[src1_index].unit_name, "");
+        strcpy(regfile[src1_index].unit_name_d, "");
         regfile[src1_index].just_freed = 1;
     }
     else {
-        strcpy(regfile[dst_index].unit_name, "");
+        strcpy(regfile[dst_index].unit_name_d, "");
         regfile[dst_index].just_freed = 1;
     }
+    free_ri(unit_i);
     if (unit_i->op.value == 1) {
         printf("unit %s%d loaded F%d = %s to MEM[%d]\n", unit_i->type, unit_i->index, regfile[src1_index].index, hex_str, st_memory_index);
     }
@@ -682,21 +884,29 @@ void execute(unit* unit_i) {
         strcpy(INSTRUCTION_TRACE[unit_i->instruction_id], buf_traceinst);
 
     }
-    printf("unit %s%d during execute stage, cycles left : %d, rj=%d, rk=%d\n", unit_i->type, unit_i->index, unit_i->cycles_left, unit_i->rj, unit_i->rk);
+    printf("unit %s%d during execute stage, cycles left : %d, rj=%d, rk=%d\n", unit_i->type, unit_i->index, unit_i->cycles_left, unit_i->fj.index, unit_i->fk.index);
 }
 void read_operands(unit* unit_i) {
-    // reading the rj and rk values 
+    // reading the rj_d and rk values 
    /* if (check_raw(unit_i) != 1) {
 
     }*/
     unit_i->fi.q = unit_i->fi.d;
     unit_i->fj.q = unit_i->fj.d;
     if (unit_i->op.value == 0) { // LD instruction
-        unit_i->rk = NO;
+        unit_i->rk_d = NO;
     }
+    if (unit_i->op.value == 4) { // LD instruction
+        printf("mult inst\n");
+    }
+    if (unit_i->op.value == 5) { // LD instruction
+        printf("div inst\n");
+    }
+
+
     else {
-        unit_i->rj = NO;
-        unit_i->rk = NO;
+        unit_i->rj_d = NO;
+        unit_i->rk_d = NO;
     }
 
     unit_i->stage += 1;
@@ -712,7 +922,7 @@ void read_operands(unit* unit_i) {
     strcpy(INSTRUCTION_TRACE[unit_i->instruction_id], buf_traceinst);
 
 
-    printf("unit %s%d finished read operands stage, cycles left : %d, rj=%d, rk=%d\n", unit_i->type, unit_i->index, unit_i->cycles_left, unit_i->rj, unit_i->rk);
+    printf("unit %s%d finished read operands stage, cycles left : %d, rj_d=%d, rk_d=%d\n", unit_i->type, unit_i->index, unit_i->cycles_left, unit_i->rj_d, unit_i->rk_d);
     return;
 
 }
@@ -736,55 +946,74 @@ void update_unit(unit** head, imemin_line instruction) {
             break;
         }
     }
+    if (instruction.src1=='a') {
+        printf("test");
+    }
+    int dst_index, src0_index, src1_index;
 
-    int dst_index = instruction.dst - '0';
-    if (dst_index > 9) {
-        dst_index -= 7;
+
+
+    if (instruction.dst >= 'a' && instruction.dst <= 'f') {
+        dst_index = instruction.dst - 'a' + 10;
     }
-    int src0_index = instruction.src0 - '0';
-    if (src0_index > 9) {
-        src0_index -= 7;
+    else {
+        dst_index = instruction.dst - '0';
     }
-    int src1_index = instruction.src1 - '0';
-    if (src1_index > 9) {
-        src1_index -= 7;
+
+    if (instruction.src0 >= 'a' && instruction.src0 <= 'f') {
+        src0_index = instruction.src0 - 'a' + 10;
     }
+    else {
+        src0_index = instruction.src0 - '0';
+    }
+
+    if (instruction.src1 >= 'a' && instruction.src1 <= 'f') {
+        src1_index = instruction.src1 - 'a' + 10;
+    }
+    else {
+        src1_index = instruction.src1 - '0';
+    }
+
+    //printf("%d", dst_index);
+
+
+
 
     iter->stage = 1;
     iter->busy = 1;
     iter->op = instruction.opcode;
 
 
-
+    iter->instruction = instruction;
 
 
     strcpy(iter->imm, instruction.imm);
 
     if (instruction.opcode.value == 1) { // ST instruction : MEM[IMM] = F[SRC1], // LD instruction: F[DST] = MEM[IMM]
-        strcpy(iter->qj, "");
-        strcpy(iter->qk, "");
+        strcpy(iter->qj_d, "");
+        strcpy(iter->qk_d, regfile[src1_index].unit_name_q);
     }
     else {
-        strcpy(iter->qj, regfile[src0_index].unit_name); // need to think how to initiate this field 
-        strcpy(iter->qk, regfile[src1_index].unit_name);// need to think how to initiate this field
+        strcpy(iter->qj_d, regfile[src0_index].unit_name_q); // need to think how to initiate this field 
+        strcpy(iter->qk_d, regfile[src1_index].unit_name_q);// need to think how to initiate this field
     }
 
     iter->fi = regfile[dst_index];
     iter->fj = regfile[src0_index];
     iter->fk = regfile[src1_index];
 
-    if ((strcmp(iter->qj, "") == 0)) { // then the register rj is ready to use
-        iter->rj = YES;
+    if ((strcmp(iter->qj_d, "") == 0)) { // then the register rj_d is ready to use
+        iter->rj_d = YES;
     }
     else {
-        iter->rj = NO;
+        iter->rj_d = NO;
     }
-    if ((strcmp(iter->qk, "") == 0)) { // then the register rk is ready to use
-        iter->rk = YES;
+    if ((strcmp(iter->qk_d, "") == 0)) { // then the register rk is ready to use
+        iter->rk_d = YES;
 
     }
     else {
-        iter->rk = NO;
+        iter->rk_d = NO;
     }
 
 
@@ -799,7 +1028,7 @@ void update_unit(unit** head, imemin_line instruction) {
     //update instruction trace
 
     
-    iter->instruction_id = find_index(instruction.test);
+    iter->instruction_id = find_index(instruction.string_instruction);
     char buf_traceinst[1000];
     char cycle_issued[10];
     strcpy(buf_traceinst, INSTRUCTION_TRACE[iter->instruction_id]);
@@ -813,11 +1042,11 @@ void update_unit(unit** head, imemin_line instruction) {
         iter->trace = 1;
     }
     if (instruction.opcode.value != 1) { // All instructions except for store.
-        strcpy(regfile[dst_index].unit_name, new_unit_name);
+        strcpy(regfile[dst_index].unit_name_d, new_unit_name);
     }
 
 
-    printf("unit %s%d issue stage, cycles left : %d, rj=%d, rk=%d\n", iter->type, iter->index, iter->latency, iter->rj, iter->rk);
+    printf("unit %s%d issue stage, cycles left : %d, rj_d=%d, rk_d=%d,fi = %d , fj = %d , fk = %d\n", iter->type, iter->index, iter->latency, iter->rj_d, iter->rk_d,iter->fi.index, iter->fj.index, iter->fk.index);
 
 }
 void issue(imemin_line instruction, unit** add_units, unit** sub_units, unit** mul_units, unit** div_units, unit** ld_units, unit** st_units) {
@@ -868,7 +1097,9 @@ void handle_traceunit(unit* unit_i, char* new_unit_name, int dst_index, int src0
     strcpy(reg_src1, "F");
     strcat(reg_src1, reg_src1_index);
 
-
+    if (clock == 11) {
+        printf("test");
+    }
     char buff[1000];
     char curr_cycle[100];
 
@@ -876,10 +1107,18 @@ void handle_traceunit(unit* unit_i, char* new_unit_name, int dst_index, int src0
     strcpy(buff, curr_cycle);
     strcat(buff, new_unit_name);
 
-
-    strcat(buff, reg_dst);
-    strcat(buff, reg_src0);
-    strcat(buff, reg_src1);
+    if (strcmp(unit_i->type , "ST")==0) {
+        strcat(buff, " "); strcat(buff, "-"); strcat(buff, " "); strcat(buff, "-");  strcat(buff, " "); strcat(buff, reg_src1);
+    }
+    else if (strcmp(unit_i->type, "LD") == 0) {
+        strcat(buff, reg_dst); strcat(buff, "-"); strcat(buff, " "); strcat(buff, "-");  strcat(buff, " ");
+    }
+    else {
+        strcat(buff, reg_dst);
+        strcat(buff, reg_src0);
+        strcat(buff, reg_src1);
+    }
+    
 
     char qj[10];
     char qk[10];
@@ -887,52 +1126,52 @@ void handle_traceunit(unit* unit_i, char* new_unit_name, int dst_index, int src0
     char rk[10];
 
     if (unit_i->stage == 1) { // read operands
-        if ((strcmp(regfile[src0_index].unit_name, "") == 0)) {
-            strcpy(qj, "- ");
-            strcpy(rj, " Yes ");
+        if ((strcmp(regfile[src0_index].unit_name_q, "") == 0)) {
+            strcpy(qj, "-");
+            strcpy(rj, "Yes");
         }
         else {
-            if (strcmp(regfile[src0_index].unit_name, new_unit_name) == 0) { // this is the same unit
-                strcpy(qj, "- ");
-                strcpy(rj, " Yes ");
+            if (strcmp(regfile[src0_index].unit_name_q, new_unit_name) == 0) { // this is the same unit
+                strcpy(qj, "-");
+                strcpy(rj, "Yes");
             }
             else { // qj is taken 
-                strcpy(qj, regfile[src0_index].unit_name);
-                strcpy(rj, " Yes ");
+                strcpy(qj, regfile[src0_index].unit_name_q);
+                strcpy(rj, "No");
             }
         }
 
-        if ((strcmp(regfile[src1_index].unit_name, "") == 0)) {
-            strcpy(qk, "- ");
-            strcpy(rk, "Yes ");
+        if ((strcmp(regfile[src1_index].unit_name_q, "") == 0)) {
+            strcpy(qk, "-");
+            strcpy(rk, "Yes");
         }
         else {
-            if (strcmp(regfile[src1_index].unit_name, new_unit_name) == 0) { // this is the same unit
-                strcpy(qk, "- ");
-                strcpy(rk, "Yes ");
+            if (strcmp(regfile[src1_index].unit_name_q, new_unit_name) == 0) { // this is the same unit
+                strcpy(qk, "-");
+                strcpy(rk, "Yes");
             }
             else {
-                strcpy(qk, regfile[src1_index].unit_name);
+                strcpy(qk, regfile[src1_index].unit_name_q);
                 strcpy(rk, "No");
             }
         }
-        strcat(buff, qj); strcat(buff, qk); strcat(buff, rj); strcat(buff, rk);
+        strcat(buff, qj); strcat(buff, " "); strcat(buff, qk); strcat(buff, " "); strcat(buff, rj); strcat(buff, " "); strcat(buff, rk);
     }
     else { // all other stages
         if (unit_i->first_execute) {
-            strcpy(qj, "- ");
-            strcpy(qk, "- ");
-            strcpy(rj, "Yes ");
+            strcpy(qj, "-");
+            strcpy(qk, "-");
+            strcpy(rj, "Yes");
             strcpy(rk, "Yes");
-            strcat(buff, qj); strcat(buff, qk); strcat(buff, rj); strcat(buff, rk);
+            strcat(buff, qj); strcat(buff, " "); strcat(buff, qk); strcat(buff, " "); strcat(buff, rj); strcat(buff, " "); strcat(buff, rk);
             unit_i->first_execute = 0;
         }
         else {
-            strcpy(qj, "- ");
-            strcpy(qk, "- ");
-            strcpy(rj, "No ");
+            strcpy(qj, "-");
+            strcpy(qk, "-");
+            strcpy(rj, "No");
             strcpy(rk, "No");
-            strcat(buff, qj); strcat(buff, qk); strcat(buff, rj); strcat(buff, rk);
+            strcat(buff, qj); strcat(buff, " "); strcat(buff, qk); strcat(buff, " "); strcat(buff, rj); strcat(buff, " "); strcat(buff, rk);
         }
     }
     strcpy(UNIT_TRACE[unit_trace_index], buff);
@@ -954,32 +1193,30 @@ void continue_execution(unit* unit_i) {
 
     if (unit_i->stage == 1) { // read operands
         if (unit_i->op.value == 0) { // LD
-            if (strcmp(regfile[dst_index].unit_name, new_unit_name) == 0) { // The dst register is up to date
+            if (TRUE) { // The dst register is up to date
                 read_operands(unit_i);
                 execute(unit_i);
             }
             else {
-                printf("Could not read operands of %s%d because reg F%d is taken by %s\n", unit_i->type, unit_i->index, regfile[dst_index].index, unit_i->fi.unit_name);
+                printf("Could not read operands of %s%d because reg F%d is taken by %s\n", unit_i->type, unit_i->index, regfile[dst_index].index, unit_i->fi.unit_name_q);
             }
         }
         else if (unit_i->op.value == 1) { // ST
-            if ((strcmp(regfile[src1_index].unit_name, new_unit_name) == 0) ||
-                (strcmp(regfile[src1_index].unit_name, "") == 0 && regfile[src1_index].just_freed == 0)) { // src1 reg is up to date
+            if (unit_i->rk_q==YES && regfile[src1_index].just_freed == 0) { // src1 reg is up to date
                 read_operands(unit_i);
                 execute(unit_i);
             }
             else {
-                printf("Could not read operands of %s%d because reg F%d is taken by %s\n", unit_i->type, unit_i->index, regfile[src1_index].index, unit_i->fk.unit_name);
+                printf("Could not read operands of %s%d because reg F%d is taken by %s\n", unit_i->type, unit_i->index, regfile[src1_index].index, unit_i->fk.unit_name_q);
             }
         }
         else { // all the rest of the instructions
-            if ((strcmp(regfile[src0_index].unit_name, new_unit_name) == 0 || strcmp(regfile[src0_index].unit_name, "") == 0) && (regfile[src1_index].just_freed == 0) &&
-                (strcmp(regfile[src1_index].unit_name, new_unit_name) == 0 || strcmp(regfile[src1_index].unit_name, "") == 0 && regfile[src0_index].just_freed == 0)) { // src0 and src1 reg is up to date
+            if (unit_i->rj_q==YES && (regfile[src1_index].just_freed == 0)  && regfile[src0_index].just_freed == 0 && unit_i->rk_q==YES) { // src0 and src1 reg is up to date
                 read_operands(unit_i);
                 execute(unit_i);
             }
             else {
-                printf("Could not read operands of %s%d because reg F%d is taken by %s or reg F%d is taken by %s\n", unit_i->type, unit_i->index, regfile[src0_index].index, regfile[src0_index].unit_name, regfile[src1_index].index, regfile[src1_index].unit_name);
+                printf("Could not read operands of %s%d because reg F%d (fj) is  %d or reg F%d (fk) is  %d\n", unit_i->type, unit_i->index, regfile[src0_index].index, unit_i->rj_q, regfile[src1_index].index, unit_i->rk_d);
             }
         }
         if (unit_i->trace == 1) { // so need to trace this unit
@@ -995,7 +1232,7 @@ void continue_execution(unit* unit_i) {
         return;
     }
     else if (unit_i->stage == 3) { // write result
-        if (check_war()) { // no hazard
+        if (!check_war(unit_i)) { // no hazard
             write_result(unit_i);
             if (unit_i->trace == 1) { // so need to trace this unit
                 handle_traceunit(unit_i, new_unit_name, dst_index, src0_index, src1_index);
@@ -1032,7 +1269,7 @@ int instruction_in_fifo(char* instruction) {
 
 
 int check_waw(imemin_line inst) {
-    if (strcmp(regfile[inst.dst].unit_name, inst.opcode.key) == 0) { // the instruction dst register is waiting for another unit to finish 
+    if (strcmp(regfile[inst.dst].unit_name_q, inst.opcode.key) == 0) { // the instruction dst register is waiting for another unit to finish 
         return 1;
     }
     return 0;
@@ -1057,7 +1294,86 @@ int run_if_busy(unit** head) {
 void d_to_q() {
     for (int i = 0; i < 16; i++) {
         regfile[i].q = regfile[i].d;
+        strcpy(regfile[i].unit_name_q, regfile[i].unit_name_d);
     }
+    unit* iter_add, * iter_sub, * iter_mul, * iter_div, * iter_ld, * iter_st;
+
+
+    iter_add = add_units;
+    iter_sub = sub_units;
+    iter_mul = mul_units;
+    iter_div = div_units;
+    iter_ld = ld_units;
+    iter_st = st_units;
+
+
+
+
+
+    while (iter_add != NULL) {
+
+        if (iter_add->busy == 1) {
+            strcpy(iter_add->qj_q , iter_add->qj_d);
+            strcpy(iter_add->qk_q , iter_add->qk_d);
+            iter_add->rj_q = iter_add->rj_d;
+            iter_add->rk_q = iter_add->rk_d;
+        }
+        iter_add = iter_add->next;
+    }
+
+    while (iter_sub != NULL) {
+        if (iter_sub->busy == 1) {
+            strcpy(iter_sub->qj_q, iter_sub->qj_d);
+            strcpy(iter_sub->qk_q, iter_sub->qk_d);
+            iter_sub->rj_q = iter_sub->rj_d;
+            iter_sub->rk_q = iter_sub->rk_d;
+        }
+        iter_sub = iter_sub->next;
+
+    }
+
+    while (iter_mul != NULL) {
+        if (iter_mul->busy == 1) {
+            strcpy(iter_mul->qj_q, iter_mul->qj_d);
+            strcpy(iter_mul->qk_q, iter_mul->qk_d);
+            iter_mul->rj_q = iter_mul->rj_d;
+            iter_mul->rk_q = iter_mul->rk_d;
+        }
+        iter_mul = iter_mul->next;
+    }
+
+    while (iter_div != NULL) {
+        if (iter_div->busy == 1) {
+            strcpy(iter_div->qj_q, iter_div->qj_d);
+            strcpy(iter_div->qk_q, iter_div->qk_d);
+            iter_div->rj_q = iter_div->rj_d;
+            iter_div->rk_q = iter_div->rk_d;
+        }
+        iter_div = iter_div->next;
+
+    }
+
+    while (iter_ld != NULL) {
+        if (iter_ld->busy == 1) {
+            strcpy(iter_ld->qj_q, iter_ld->qj_d);
+            strcpy(iter_ld->qk_q, iter_ld->qk_d);
+            iter_ld->rj_q = iter_ld->rj_d;
+            iter_ld->rk_q = iter_ld->rk_d;
+        }
+        iter_ld = iter_ld->next;
+
+    }
+    while (iter_st != NULL) {
+        if (iter_st->busy == 1) {
+            strcpy(iter_st->qj_q, iter_st->qj_d);
+            strcpy(iter_st->qk_q, iter_st->qk_d);
+            iter_st->rj_q = iter_st->rj_d;
+            iter_st->rk_q = iter_st->rk_d;
+        }
+        iter_st = iter_st->next;
+    }
+    return;
+
 }
 
 char* peek(fifo* queue) {
@@ -1075,6 +1391,10 @@ void run_scoreboard(FILE* dmemout, FILE* regout, fifo inst_fifo, unit** add_unit
     while (true) {
         d_to_q();
         printf("cycle: %d\n", clock);
+        //if (clock == 3) {
+        //    printf("errro\n");
+        //    print_queue(&inst_fifo);
+        //}
         char* instruction[20];
         opcode current_opcode = { "",0 };
 
@@ -1098,7 +1418,7 @@ void run_scoreboard(FILE* dmemout, FILE* regout, fifo inst_fifo, unit** add_unit
 
         }
 
-
+        print_queue(&inst_fifo);
         if (!fifo_is_empty(&inst_fifo)) { // there is a waiting instruction in the FIFO
             //char* fifo_output;
             char* fifo_output = peek(&inst_fifo);
@@ -1139,6 +1459,9 @@ void run_scoreboard(FILE* dmemout, FILE* regout, fifo inst_fifo, unit** add_unit
                 if (next_instruction.opcode.value != 6) {
                     if (!is_full(&inst_fifo)) {
                         add_to_fifo(&inst_fifo, MEMORY[mem_index]);
+                        if (inst_fifo.size == INST_FIFO_SIZE) {
+                            printf("fifo is full ! ");
+                        }
                         print_queue(&inst_fifo);
                         clock += 1;
                         mem_index += 1;
@@ -1152,6 +1475,7 @@ void run_scoreboard(FILE* dmemout, FILE* regout, fifo inst_fifo, unit** add_unit
                 }
                 else {
                     clock += 1;
+                    halt_flag = TRUE;
                     continue;
                 }
 
@@ -1222,6 +1546,15 @@ unit* create_unit(char* type, int delay, int index) {
         new_unit->next = NULL;
         new_unit->trace = 0;
         new_unit->first_execute = 1;
+        strcpy(new_unit->qj_d , "");
+        strcpy(new_unit->qj_q, "");
+        strcpy(new_unit->qk_d, "");
+        strcpy(new_unit->qk_q, "");
+        new_unit->rj_d = YES;
+        new_unit->rj_q = YES;
+        new_unit->rk_d = YES;
+        new_unit->rk_q = YES;
+
     }
     return new_unit;
 }
@@ -1279,6 +1612,7 @@ void write_traceinst() {
     FILE* fp = fopen("traceinst.txt", "a");
     printf("\nwriting to traceinst.txt : \n");
     for (int i = 0; i < mem_index; i++) {
+        //INSTRUCTION_TRACE[i] = tolower(INSTRUCTION_TRACE[i]);
         printf("%s\n", INSTRUCTION_TRACE[i]);
         fprintf(fp, "%s\n", INSTRUCTION_TRACE[i]);
     }
@@ -1294,6 +1628,7 @@ void write_traceunit() {
     }
     fclose(fp);
 }
+
 
 int main(int argc, char* argv[]) {
 
@@ -1352,12 +1687,7 @@ int main(int argc, char* argv[]) {
     fclose(fp_cfg);
 
     // Initiate the processor units according to scoreboard params.
-    unit* add_units = NULL;
-    unit* sub_units = NULL;
-    unit* mul_units = NULL;
-    unit* div_units = NULL;
-    unit* ld_units = NULL;
-    unit* st_units = NULL;
+
 
     init_units(&add_units, &sub_units, &mul_units, &div_units, &ld_units, &st_units);
 
