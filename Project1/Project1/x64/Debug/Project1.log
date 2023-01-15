@@ -1,32 +1,31 @@
-﻿  main.c
-C:\Users\noamt\OneDrive\Documents\GitHub\Computer-Architecturte\Project1\Project1\main.c(224,24): warning C4244: '=': conversion from 'int' to 'float', possible loss of data
-C:\Users\noamt\OneDrive\Documents\GitHub\Computer-Architecturte\Project1\Project1\main.c(262,25): warning C4778: 'fprintf' : unterminated format string '%\n'
-C:\Users\noamt\OneDrive\Documents\GitHub\Computer-Architecturte\Project1\Project1\main.c(262,42): warning C4474: 'fprintf' : too many arguments passed for format string
-C:\Users\noamt\OneDrive\Documents\GitHub\Computer-Architecturte\Project1\Project1\main.c(262,42): message : placeholders and their parameters expect 0 variadic arguments, but 1 were provided
-C:\Users\noamt\OneDrive\Documents\GitHub\Computer-Architecturte\Project1\Project1\main.c(307,10): warning C4101: 'line': unreferenced local variable
-C:\Users\noamt\OneDrive\Documents\GitHub\Computer-Architecturte\Project1\Project1\main.c(358,11): warning C4047: 'initializing': 'char *' differs in levels of indirection from 'char **'
-C:\Users\noamt\OneDrive\Documents\GitHub\Computer-Architecturte\Project1\Project1\main.c(372,42): warning C4047: '=': 'char *' differs in levels of indirection from 'char ***'
-C:\Users\noamt\OneDrive\Documents\GitHub\Computer-Architecturte\Project1\Project1\main.c(494,70): warning C4101: 'iter_st': unreferenced local variable
-C:\Users\noamt\OneDrive\Documents\GitHub\Computer-Architecturte\Project1\Project1\main.c(494,23): warning C4101: 'iter_sub': unreferenced local variable
-C:\Users\noamt\OneDrive\Documents\GitHub\Computer-Architecturte\Project1\Project1\main.c(494,59): warning C4101: 'iter_ld': unreferenced local variable
-C:\Users\noamt\OneDrive\Documents\GitHub\Computer-Architecturte\Project1\Project1\main.c(494,11): warning C4101: 'iter_add': unreferenced local variable
-C:\Users\noamt\OneDrive\Documents\GitHub\Computer-Architecturte\Project1\Project1\main.c(494,35): warning C4101: 'iter_mul': unreferenced local variable
-C:\Users\noamt\OneDrive\Documents\GitHub\Computer-Architecturte\Project1\Project1\main.c(494,47): warning C4101: 'iter_div': unreferenced local variable
-C:\Users\noamt\OneDrive\Documents\GitHub\Computer-Architecturte\Project1\Project1\main.c(526,72): warning C4244: '=': conversion from 'int' to 'float', possible loss of data
-C:\Users\noamt\OneDrive\Documents\GitHub\Computer-Architecturte\Project1\Project1\main.c(551,36): warning C4047: '=': 'char *' differs in levels of indirection from 'unsigned char (*)[32]'
-C:\Users\noamt\OneDrive\Documents\GitHub\Computer-Architecturte\Project1\Project1\main.c(522,10): warning C4101: 'st_memory_value': unreferenced local variable
-C:\Users\noamt\OneDrive\Documents\GitHub\Computer-Architecturte\Project1\Project1\main.c(615,15): warning C4101: 'float_value': unreferenced local variable
-C:\Users\noamt\OneDrive\Documents\GitHub\Computer-Architecturte\Project1\Project1\main.c(1093,43): warning C4047: 'function': 'char ***' differs in levels of indirection from 'unsigned char (*)[32]'
-C:\Users\noamt\OneDrive\Documents\GitHub\Computer-Architecturte\Project1\Project1\main.c(1093,25): warning C4024: 'add_to_fifo': different types for formal and actual parameter 1
-C:\Users\noamt\OneDrive\Documents\GitHub\Computer-Architecturte\Project1\Project1\main.c(1047,15): warning C4101: 'instruction': unreferenced local variable
-C:\Users\noamt\OneDrive\Documents\GitHub\Computer-Architecturte\Project1\Project1\main.c(1165,38): warning C4098: 'add_first': 'void' function returning a value
-C:\Users\noamt\OneDrive\Documents\GitHub\Computer-Architecturte\Project1\Project1\main.c(1236,45): warning C4047: '=': 'parameter *' differs in levels of indirection from 'parameter (*)[6]'
-C:\Users\noamt\OneDrive\Documents\GitHub\Computer-Architecturte\Project1\Project1\main.c(1280,36): warning C4020: 'init_scoreboard_params': too many actual parameters
-C:\Users\noamt\OneDrive\Documents\GitHub\Computer-Architecturte\Project1\Project1\main.c(1321,53): warning C4101: 'fp_traceunit': unreferenced local variable
-C:\Users\noamt\OneDrive\Documents\GitHub\Computer-Architecturte\Project1\Project1\main.c(1321,37): warning C4101: 'fp_traceinst': unreferenced local variable
-C:\Users\noamt\OneDrive\Documents\GitHub\Computer-Architecturte\Project1\Project1\main.c(1321,24): warning C4101: 'fp_regout': unreferenced local variable
-C:\Users\noamt\OneDrive\Documents\GitHub\Computer-Architecturte\Project1\Project1\main.c(1321,11): warning C4101: 'fp_memout': unreferenced local variable
-C:\Users\noamt\OneDrive\Documents\GitHub\Computer-Architecturte\Project1\Project1\main.c(472): warning C4716: 'check_war': must return a value
-C:\Users\noamt\OneDrive\Documents\GitHub\Computer-Architecturte\Project1\Project1\main.c(1011): warning C4716: 'instruction_in_fifo': must return a value
-C:\Users\noamt\OneDrive\Documents\GitHub\Computer-Architecturte\Project1\Project1\main.c(430): warning C4715: 'find_opcode': not all control paths return a value
-  Project1.vcxproj -> C:\Users\noamt\OneDrive\Documents\GitHub\Computer-Architecturte\Project1\x64\Debug\Project1.exe
+﻿C:\Program Files\Microsoft Visual Studio\2022\Community\MSBuild\Microsoft\VC\v170\Microsoft.CppBuild.targets(517,5): warning MSB8028: The intermediate directory (x64\Debug\) contains files shared from another project (Project1.vcxproj).  This can lead to incorrect clean and rebuild behavior.
+  main.c
+C:\Users\noamt\OneDrive\Documents\GitHub\Computer-Architecturte\Project1\Project1\main.c(252,24): warning C4244: '=': conversion from 'int' to 'float', possible loss of data
+C:\Users\noamt\OneDrive\Documents\GitHub\Computer-Architecturte\Project1\Project1\main.c(304,15): warning C4101: 'dest': unreferenced local variable
+C:\Users\noamt\OneDrive\Documents\GitHub\Computer-Architecturte\Project1\Project1\main.c(329,10): warning C4101: 'line': unreferenced local variable
+C:\Users\noamt\OneDrive\Documents\GitHub\Computer-Architecturte\Project1\Project1\main.c(428,20): warning C4098: 'empty_fifo': 'void' function returning a value
+C:\Users\noamt\OneDrive\Documents\GitHub\Computer-Architecturte\Project1\Project1\main.c(520,104): warning C4013: 'find_index' undefined; assuming extern returning int
+C:\Users\noamt\OneDrive\Documents\GitHub\Computer-Architecturte\Project1\Project1\main.c(630,70): warning C4101: 'iter_st': unreferenced local variable
+C:\Users\noamt\OneDrive\Documents\GitHub\Computer-Architecturte\Project1\Project1\main.c(630,23): warning C4101: 'iter_sub': unreferenced local variable
+C:\Users\noamt\OneDrive\Documents\GitHub\Computer-Architecturte\Project1\Project1\main.c(630,59): warning C4101: 'iter_ld': unreferenced local variable
+C:\Users\noamt\OneDrive\Documents\GitHub\Computer-Architecturte\Project1\Project1\main.c(630,11): warning C4101: 'iter_add': unreferenced local variable
+C:\Users\noamt\OneDrive\Documents\GitHub\Computer-Architecturte\Project1\Project1\main.c(630,35): warning C4101: 'iter_mul': unreferenced local variable
+C:\Users\noamt\OneDrive\Documents\GitHub\Computer-Architecturte\Project1\Project1\main.c(630,47): warning C4101: 'iter_div': unreferenced local variable
+C:\Users\noamt\OneDrive\Documents\GitHub\Computer-Architecturte\Project1\Project1\main.c(795,36): warning C4047: '=': 'char *' differs in levels of indirection from 'unsigned char (*)[32]'
+C:\Users\noamt\OneDrive\Documents\GitHub\Computer-Architecturte\Project1\Project1\main.c(756,10): warning C4101: 'st_memory_value': unreferenced local variable
+C:\Users\noamt\OneDrive\Documents\GitHub\Computer-Architecturte\Project1\Project1\main.c(841,15): warning C4101: 'float_value': unreferenced local variable
+C:\Users\noamt\OneDrive\Documents\GitHub\Computer-Architecturte\Project1\Project1\main.c(1161,5): warning C4033: 'find_traceunit' must return a value
+C:\Users\noamt\OneDrive\Documents\GitHub\Computer-Architecturte\Project1\Project1\main.c(1381,13): warning C4013: 'check_waw' undefined; assuming extern returning int
+C:\Users\noamt\OneDrive\Documents\GitHub\Computer-Architecturte\Project1\Project1\main.c(1554,15): warning C4101: 'instruction': unreferenced local variable
+C:\Users\noamt\OneDrive\Documents\GitHub\Computer-Architecturte\Project1\Project1\main.c(1733,38): warning C4098: 'add_first': 'void' function returning a value
+C:\Users\noamt\OneDrive\Documents\GitHub\Computer-Architecturte\Project1\Project1\main.c(1809,45): warning C4047: '=': 'parameter *' differs in levels of indirection from 'parameter (*)[6]'
+C:\Users\noamt\OneDrive\Documents\GitHub\Computer-Architecturte\Project1\Project1\main.c(1853,36): warning C4020: 'init_scoreboard_params': too many actual parameters
+C:\Users\noamt\OneDrive\Documents\GitHub\Computer-Architecturte\Project1\Project1\main.c(1889,53): warning C4101: 'fp_traceunit': unreferenced local variable
+C:\Users\noamt\OneDrive\Documents\GitHub\Computer-Architecturte\Project1\Project1\main.c(1889,37): warning C4101: 'fp_traceinst': unreferenced local variable
+C:\Users\noamt\OneDrive\Documents\GitHub\Computer-Architecturte\Project1\Project1\main.c(1889,24): warning C4101: 'fp_regout': unreferenced local variable
+C:\Users\noamt\OneDrive\Documents\GitHub\Computer-Architecturte\Project1\Project1\main.c(1889,11): warning C4101: 'fp_memout': unreferenced local variable
+C:\Users\noamt\OneDrive\Documents\GitHub\Computer-Architecturte\Project1\Project1\main.c(461): warning C4715: 'find_opcode': not all control paths return a value
+C:\Users\noamt\OneDrive\Documents\GitHub\Computer-Architecturte\Project1\Project1\main.c(969): warning C4715: 'find_index': not all control paths return a value
+C:\Users\noamt\OneDrive\Documents\GitHub\Computer-Architecturte\Project1\Project1\main.c(1163): warning C4715: 'find_traceunit': not all control paths return a value
+C:\Users\noamt\OneDrive\Documents\GitHub\Computer-Architecturte\Project1\Project1\main.c(1386): warning C4716: 'instruction_in_fifo': must return a value
+  Project1.vcxproj -> C:\Users\noamt\OneDrive\Documents\GitHub\Computer-Architecturte\Project1\x64\Debug\sim.exe

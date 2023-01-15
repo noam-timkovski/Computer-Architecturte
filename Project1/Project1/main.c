@@ -77,8 +77,10 @@ typedef struct imemin_line {
 
 typedef struct unit {
     char type[20];
-    int stage; // 0 = issue, 1 = read operands, 2 = execute complete, 3 = write back
-    int busy;
+    int stage_d; // 0 = issue, 1 = read operands, 2 = execute complete, 3 = write back
+    int stage_q;
+    int busy_d;
+    int busy_q;
     int latency;
     int index;
     opcode op;
@@ -94,7 +96,8 @@ typedef struct unit {
     char qk_d[20];
     char qk_q[20];
     char imm[4];
-    int cycles_left;
+    int cycles_left_d;
+    int cycles_left_q;
     int instruction_id;
     int trace;
     int first_execute;
@@ -496,17 +499,7 @@ imemin_line decrypt_instruction(char* mem_line) {
 
 
 }
-int this_is_me(unit* i) {
-    unit* iter_add, * iter_sub, * iter_mul, * iter_div, * iter_ld, * iter_st;
-    iter_add = add_units;
-    iter_sub = sub_units;
-    iter_mul = mul_units;
-    iter_div = div_units;
-    iter_ld = ld_units;
-    iter_st = st_units;
 
-
-}
 int check_war(unit* unit_i) { // check that the destination register doesn't appear in one of the other units src registers.
     unit* iter_add, * iter_sub, * iter_mul, * iter_div, * iter_ld, * iter_st;
     
@@ -523,65 +516,88 @@ int check_war(unit* unit_i) { // check that the destination register doesn't app
 
 
     while (iter_add != NULL) {
-
-        if (strcmp(unit_i->type,iter_add->type)==0 && unit_i->index!=iter_add->index && find_index(iter_add->instruction.string_instruction) < find_index(unit_i->instruction.string_instruction)) {
-            if (iter_add->fj.index == unit_i->fi.index || iter_add->fk.index == unit_i->fi.index) {
-                return 1;
+        if (!(strcmp(unit_i->type, iter_add->type) == 0 && unit_i->index == iter_add->index) & (iter_add->busy_q == 1)) { /// check if the unit is the unit is checking it self - same unit - same unit index 
+            if ((unit_i->fi.index == iter_add->fj.index || unit_i->fi.index == iter_add->fk.index) && (find_index(iter_add->instruction.string_instruction) < find_index(unit_i->instruction.string_instruction))) {
+                if (iter_add->stage_q == 1) {
+                    printf("WAR HAZARD! , unit %s wants to write to register %d but it's source register of unit %s\n", unit_i->type, unit_i->fi.index, iter_add->type);
+                    return 1;
+                }
+               
             }
-            
         }
+        
         iter_add = iter_add->next;
     }
         
     while (iter_sub != NULL) {
-        if (strcmp(unit_i->type, iter_sub->type) == 0 && unit_i->index != iter_sub->index && find_index(iter_sub->instruction.string_instruction) < find_index(unit_i->instruction.string_instruction)) {
-            if (iter_sub->fj.index == unit_i->fi.index || iter_sub->fk.index == unit_i->fi.index) {
-                return 1;
+        if (!(strcmp(unit_i->type, iter_sub->type) == 0 && unit_i->index == iter_sub->index) & (iter_sub->busy_q == 1)) {
+            if ((unit_i->fi.index == iter_sub->fj.index || unit_i->fi.index == iter_sub->fk.index) && (find_index(iter_sub->instruction.string_instruction) < find_index(unit_i->instruction.string_instruction))) {
+                if (iter_sub->stage_q == 1) {
+                    printf("WAR HAZARD! , unit %s wants to write to register %d but it's source register of unit %s\n", unit_i->type, unit_i->fi.index, iter_sub->type);
+                    return 1;
+                }
+               
             }
-           
         }
+        
         iter_sub = iter_sub->next;
         
     }
 
     while (iter_mul != NULL) {
-        if (strcmp(unit_i->type, iter_mul->type) == 0 && unit_i->index != iter_mul->index && find_index(iter_mul->instruction.string_instruction) < find_index(unit_i->instruction.string_instruction)) {
-            if (iter_mul->fj.index == unit_i->fi.index || iter_mul->fk.index == unit_i->fi.index) {
-                return 1;
+        if (!(strcmp(unit_i->type, iter_mul->type) == 0 && unit_i->index == iter_mul->index) &(iter_mul->busy_q==1)) {
+            if ((unit_i->fi.index == iter_mul->fj.index || unit_i->fi.index == iter_mul->fk.index) && (find_index(iter_mul->instruction.string_instruction) < find_index(unit_i->instruction.string_instruction))) {
+                if (iter_mul->stage_q == 1) {
+                    printf("WAR HAZARD! , unit %s wants to write to register %d but it's source register of unit %s\n", unit_i->type, unit_i->fi.index, iter_mul->type);
+                    return 1;
+                }
+                
             }
-            
         }
+        
         iter_mul = iter_mul->next;
     }
 
     while (iter_div != NULL) {
-        if (strcmp(unit_i->type, iter_div->type) == 0 && unit_i->index != iter_div->index && find_index(iter_div->instruction.string_instruction) < find_index(unit_i->instruction.string_instruction)) {
-            if (iter_div->fj.index == unit_i->fi.index || iter_div->fk.index == unit_i->fi.index) {
-                return 1;
+        if (!(strcmp(unit_i->type, iter_div->type) == 0 && unit_i->index == iter_div->index) & (iter_div->busy_q == 1)) {
+            if ((unit_i->fi.index == iter_div->fj.index || unit_i->fi.index == iter_div->fk.index) && (find_index(iter_div->instruction.string_instruction) < find_index(unit_i->instruction.string_instruction))) {
+                if (iter_div->stage_q == 1) {
+                    printf("WAR HAZARD! , unit %s wants to write to register %d but it's source register of unit %s\n", unit_i->type, unit_i->fi.index, iter_div->type);
+                    return 1;
+                }
+               
             }
-            
         }
+        
         iter_div = iter_div->next;
         
     }
 
     while (iter_ld != NULL) {
-        if (strcmp(unit_i->type, iter_ld->type) == 0 && unit_i->index != iter_ld->index && find_index(iter_ld->instruction.string_instruction) < find_index(unit_i->instruction.string_instruction)) {
-            if (iter_ld->fj.index == unit_i->fi.index || iter_ld->fk.index == unit_i->fi.index) {
-                return 1;
+        if (!((strcmp(unit_i->type, iter_ld->type) == 0) && unit_i->index == iter_ld->index) & (iter_ld->busy_q == 1)) {
+            if ((unit_i->fi.index == iter_ld->fj.index || unit_i->fi.index == iter_ld->fk.index) && (find_index(iter_ld->instruction.string_instruction) < find_index(unit_i->instruction.string_instruction))) {
+                if (iter_ld->stage_q == 1) {
+                    printf("WAR HAZARD! , unit %s wants to write to register %d but it's source register of unit %s\n", unit_i->type, unit_i->fi.index, iter_ld->type);
+                    return 1;
+                }
+               
             }
-           
         }
+        
         iter_ld = iter_ld->next;
        
     }
     while (iter_st != NULL) {
-        if (strcmp(unit_i->type, iter_st->type) == 0 && unit_i->index != iter_st->index && find_index(iter_st->instruction.string_instruction) < find_index(unit_i->instruction.string_instruction)) {
-            if (iter_st->fj.index == unit_i->fi.index || iter_st->fk.index == unit_i->fi.index) {
-                return 1;
+        if (!(strcmp(unit_i->type, iter_st->type) == 0 && unit_i->index == iter_st->index) & (iter_st->busy_q == 1)) {
+            if ((unit_i->fi.index == iter_st->fj.index || unit_i->fi.index == iter_st->fk.index) && (find_index(iter_st->instruction.string_instruction) < find_index(unit_i->instruction.string_instruction))) {
+                if (iter_st->stage_q == 1) {
+                    printf("WAR HAZARD! , unit %s wants to write to register %d but it's source register of unit %s\n", unit_i->type, unit_i->fi.index, iter_st->type);
+                    return 1;
+                }
+               
             }
-            
         }
+        
         iter_st = iter_st->next;
     }
     return 0;
@@ -601,7 +617,7 @@ int iterate_list(unit** head) {
     unit* iter = *head;
 
     while (iter != NULL) {
-        if (iter->busy == 0) {
+        if (iter->busy_q == 0) {
             return 0;
         }
         iter = iter->next;
@@ -651,7 +667,7 @@ void free_ri(unit* unit_i) {
 
     while (iter_add != NULL) {
 
-        if (iter_add->busy==1) {
+        if (iter_add->busy_q==1|| iter_add->busy_d==1) {
             if (iter_add->fj.index == unit_i->fi.index ) {
                 iter_add->rj_d = YES;
             }
@@ -664,7 +680,7 @@ void free_ri(unit* unit_i) {
     }
 
     while (iter_sub != NULL) {
-        if (iter_sub->busy==1) {
+        if (iter_sub->busy_q==1 || iter_sub->busy_d == 1) {
             if (iter_sub->fj.index == unit_i->fi.index) {
                 iter_sub->rj_d = YES;
             }
@@ -678,7 +694,7 @@ void free_ri(unit* unit_i) {
     }
 
     while (iter_mul != NULL) {
-        if (iter_mul->busy == 1) {
+        if (iter_mul->busy_q == 1) {
             if (iter_mul->fj.index == unit_i->fi.index) {
                 iter_mul->rj_d = YES;
             }
@@ -691,7 +707,7 @@ void free_ri(unit* unit_i) {
     }
 
     while (iter_div != NULL) {
-        if (iter_div->busy == 1) {
+        if (iter_div->busy_q == 1) {
             if (iter_div->fj.index == unit_i->fi.index) {
                 iter_div->rj_d = YES;
             }
@@ -705,7 +721,7 @@ void free_ri(unit* unit_i) {
     }
 
     while (iter_ld != NULL) {
-        if (iter_ld->busy == 1) {
+        if (iter_ld->busy_q == 1) {
             if (iter_ld->fj.index == unit_i->fi.index) {
                 iter_ld->rj_d = YES;
             }
@@ -718,7 +734,7 @@ void free_ri(unit* unit_i) {
 
     }
     while (iter_st != NULL) {
-        if (iter_st->busy == 1) {
+        if (iter_st->busy_q == 1) {
             if (iter_st->fj.index == unit_i->fi.index) {
                 iter_st->rj_d = YES;
             }
@@ -735,7 +751,7 @@ void free_ri(unit* unit_i) {
 void write_result(unit* unit_i) {
     unit_i->rj_d = YES;
     unit_i->rk_d = YES;
-    unit_i->busy = NO;
+    unit_i->busy_d = NO;
     int st_memory_index = 0;
     char st_memory_value[10];
     char hex_str[17];
@@ -768,7 +784,7 @@ void write_result(unit* unit_i) {
             imm = imm * 16 + digit;
         }
         if (unit_i->fi.index == 8) {
-            printf("test");
+            printf("test\n");
         }
         //imm = atoi(unit_i->imm);
         char* memory_float = { 0 };
@@ -860,6 +876,7 @@ void write_result(unit* unit_i) {
         regfile[dst_index].just_freed = 1;
     }
     free_ri(unit_i);
+
     if (unit_i->op.value == 1) {
         printf("unit %s%d loaded F%d = %s to MEM[%d]\n", unit_i->type, unit_i->index, regfile[src1_index].index, hex_str, st_memory_index);
     }
@@ -871,9 +888,9 @@ void write_result(unit* unit_i) {
 
 void execute(unit* unit_i) {
     //  unit_i.stage += 1;
-    unit_i->cycles_left -= 1;
-    if (unit_i->cycles_left == 0) {
-        unit_i->stage += 1;
+    unit_i->cycles_left_d -= 1;
+    if (unit_i->cycles_left_d == 0) {
+        unit_i->stage_d += 1;
 
         // update INSTRUCTION_TRACE 
         char buf_traceinst[1000];
@@ -882,9 +899,23 @@ void execute(unit* unit_i) {
         snprintf(cycle_execution_end, sizeof(cycle_execution_end), "%d ", clock);
         strcat(buf_traceinst, cycle_execution_end);
         strcpy(INSTRUCTION_TRACE[unit_i->instruction_id], buf_traceinst);
+        printf("unit %s%d finish execute stage! rj=%d, rk=%d\n", unit_i->type, unit_i->index,unit_i->fj.index, unit_i->fk.index);
 
+        //if (unit_i->op.value == 1) { // ST instruction
+        //    strcpy(regfile[unit_i->fk.index].unit_name_d, "");
+        //    regfile[unit_i->fk.index].just_freed = 1;
+        //}
+        //else {
+        //    strcpy(regfile[unit_i->fi.index].unit_name_d, "");
+        //    regfile[unit_i->fi.index].just_freed = 1;
+        //}
+        //free_ri(unit_i);
+        //unit_i->busy_d = 0;
     }
-    printf("unit %s%d during execute stage, cycles left : %d, rj=%d, rk=%d\n", unit_i->type, unit_i->index, unit_i->cycles_left, unit_i->fj.index, unit_i->fk.index);
+    else {
+        printf("unit %s%d during execute stage, cycles left : %d, rj=%d, rk=%d\n", unit_i->type, unit_i->index, unit_i->cycles_left_d, unit_i->fj.index, unit_i->fk.index);
+    }
+    
 }
 void read_operands(unit* unit_i) {
     // reading the rj_d and rk values 
@@ -909,9 +940,9 @@ void read_operands(unit* unit_i) {
         unit_i->rk_d = NO;
     }
 
-    unit_i->stage += 1;
-    unit_i->cycles_left = unit_i->latency;
-
+    unit_i->stage_d += 1;
+    unit_i->cycles_left_d = unit_i->latency;
+    unit_i->cycles_left_q = unit_i->latency;
     // update INSTRUCTION_TRACE
 
     char buf_traceinst[1000];
@@ -922,7 +953,7 @@ void read_operands(unit* unit_i) {
     strcpy(INSTRUCTION_TRACE[unit_i->instruction_id], buf_traceinst);
 
 
-    printf("unit %s%d finished read operands stage, cycles left : %d, rj_d=%d, rk_d=%d\n", unit_i->type, unit_i->index, unit_i->cycles_left, unit_i->rj_d, unit_i->rk_d);
+    printf("unit %s%d finished read operands stage, cycles left : %d, rj_d=%d, rk_d=%d\n", unit_i->type, unit_i->index, unit_i->cycles_left_d, unit_i->rj_d, unit_i->rk_d);
     return;
 
 }
@@ -942,13 +973,13 @@ void update_unit(unit** head, imemin_line instruction) {
     unit* iter;
     //printf("iter . busy = %d", iter->busy);
     for (iter = *head; iter->next != NULL; iter = iter->next) {
-        if (iter->busy != 1) {
+        if (iter->busy_q != 1) {
             break;
         }
     }
-    if (instruction.src1=='a') {
-        printf("test");
-    }
+  /*  if (instruction.src1=='6') {
+        printf("test\n");
+    }*/
     int dst_index, src0_index, src1_index;
 
 
@@ -979,8 +1010,8 @@ void update_unit(unit** head, imemin_line instruction) {
 
 
 
-    iter->stage = 1;
-    iter->busy = 1;
+    iter->stage_d = 1;
+    iter->busy_d = 1;
     iter->op = instruction.opcode;
 
 
@@ -991,7 +1022,7 @@ void update_unit(unit** head, imemin_line instruction) {
 
     if (instruction.opcode.value == 1) { // ST instruction : MEM[IMM] = F[SRC1], // LD instruction: F[DST] = MEM[IMM]
         strcpy(iter->qj_d, "");
-        strcpy(iter->qk_d, regfile[src1_index].unit_name_q);
+        strcpy(iter->qk_d, regfile[src1_index].unit_name_d);
     }
     else {
         strcpy(iter->qj_d, regfile[src0_index].unit_name_q); // need to think how to initiate this field 
@@ -1073,6 +1104,63 @@ void issue(imemin_line instruction, unit** add_units, unit** sub_units, unit** m
     }
 
 }
+unit* find_traceunit() {
+    unit* iter_add, * iter_sub, * iter_mul, * iter_div, * iter_ld, * iter_st;
+
+
+    iter_add = add_units;
+    iter_sub = sub_units;
+    iter_mul = mul_units;
+    iter_div = div_units;
+    iter_ld = ld_units;
+    iter_st = st_units;
+
+    while (iter_add != NULL) {
+        if(iter_add->trace==1){
+            return iter_add;
+        }
+        iter_add = iter_add->next;
+    }
+
+    while (iter_sub != NULL) {
+        if (iter_sub->trace == 1) {
+            return iter_sub;
+        }
+        iter_sub = iter_sub->next;
+
+    }
+
+    while (iter_mul != NULL) {
+        if (iter_mul->trace == 1) {
+            return iter_mul;
+        }
+        iter_mul = iter_mul->next;
+    }
+
+    while (iter_div != NULL) {
+        if (iter_div->trace == 1) {
+            return iter_div;
+        }
+        iter_div = iter_div->next;
+
+    }
+
+    while (iter_ld != NULL) {
+        if (iter_ld->trace == 1) {
+            return iter_ld;
+        }
+        iter_ld = iter_ld->next;
+
+    }
+    while (iter_st != NULL) {
+        if (iter_st->trace == 1) {
+            return iter_st;
+        }
+        iter_st = iter_st->next;
+    }
+    return;
+
+}
 
 void handle_traceunit(unit* unit_i, char* new_unit_name, int dst_index, int src0_index, int src1_index) {
 
@@ -1097,7 +1185,7 @@ void handle_traceunit(unit* unit_i, char* new_unit_name, int dst_index, int src0
     strcpy(reg_src1, "F");
     strcat(reg_src1, reg_src1_index);
 
-    if (clock == 11) {
+    if (clock == 10) {
         printf("test");
     }
     char buff[1000];
@@ -1107,7 +1195,7 @@ void handle_traceunit(unit* unit_i, char* new_unit_name, int dst_index, int src0
     strcpy(buff, curr_cycle);
     strcat(buff, new_unit_name);
 
-    if (strcmp(unit_i->type , "ST")==0) {
+    if (strcmp(unit_i->type, "ST") == 0) {
         strcat(buff, " "); strcat(buff, "-"); strcat(buff, " "); strcat(buff, "-");  strcat(buff, " "); strcat(buff, reg_src1);
     }
     else if (strcmp(unit_i->type, "LD") == 0) {
@@ -1118,61 +1206,92 @@ void handle_traceunit(unit* unit_i, char* new_unit_name, int dst_index, int src0
         strcat(buff, reg_src0);
         strcat(buff, reg_src1);
     }
-    
+
 
     char qj[10];
     char qk[10];
     char rj[10];
     char rk[10];
 
-    if (unit_i->stage == 1) { // read operands
-        if ((strcmp(regfile[src0_index].unit_name_q, "") == 0)) {
+    //if (unit_i->rj_d == YES) {
+    //    strcpy(qj, "-");
+    //    strcpy(rj, "Yes");
+    //}
+    //if (unit_i->rj_d == NO) {
+    //    if (strcmp(regfile[src0_index].unit_name_q, new_unit_name) == 0) { // this is the same unit
+    //        strcpy(qj, "-");
+    //        strcpy(rj, "No");
+    //    }
+    //    else {
+    //        strcpy(qj, unit_i->qj_d);
+    //        strcpy(rj, "No");
+    //    }
+    //    
+    //}
+    //if (unit_i->rk_d == YES) {
+    //    strcpy(qk, "-");
+    //    strcpy(rk, "Yes");
+    //}
+    //if (unit_i->rk_d == NO) {
+    //    if (strcmp(regfile[src1_index].unit_name_q, new_unit_name) == 0) { // this is the same unit
+    //        strcpy(qk, "-");
+    //        strcpy(rk, "Yes");
+    //    }
+    //    else {
+    //        strcpy(qk, unit_i->qk_d);
+    //        strcpy(rk, "No");
+    //    }
+    //}
+    //strcat(buff, qj); strcat(buff, " "); strcat(buff, qk); strcat(buff, " "); strcat(buff, rj); strcat(buff, " "); strcat(buff, rk);
+    //strcat(buff, unit_i->qj_q); strcat(buff, " "); strcat(buff, unit_i->qk_q); strcat(buff, " "); strcat(buff, unit_i->rj_q); strcat(buff, " "); strcat(buff, unit_i->rk_q);
+    if (unit_i->stage_d == 1) { // read operands
+        if ((strcmp(regfile[src0_index].unit_name_d, "") == 0)) {
             strcpy(qj, "-");
             strcpy(rj, "Yes");
         }
         else {
-            if (strcmp(regfile[src0_index].unit_name_q, new_unit_name) == 0) { // this is the same unit
+            if (strcmp(regfile[src0_index].unit_name_d, new_unit_name) == 0) { // this is the same unit
                 strcpy(qj, "-");
                 strcpy(rj, "Yes");
             }
             else { // qj is taken 
-                strcpy(qj, regfile[src0_index].unit_name_q);
+                strcpy(qj, regfile[src0_index].unit_name_d);
                 strcpy(rj, "No");
             }
         }
 
-        if ((strcmp(regfile[src1_index].unit_name_q, "") == 0)) {
+        if ((strcmp(regfile[src1_index].unit_name_d, "") == 0)) {
             strcpy(qk, "-");
             strcpy(rk, "Yes");
         }
         else {
-            if (strcmp(regfile[src1_index].unit_name_q, new_unit_name) == 0) { // this is the same unit
+            if (strcmp(regfile[src1_index].unit_name_d, new_unit_name) == 0) { // this is the same unit
                 strcpy(qk, "-");
                 strcpy(rk, "Yes");
             }
             else {
-                strcpy(qk, regfile[src1_index].unit_name_q);
+                strcpy(qk, regfile[src1_index].unit_name_d);
                 strcpy(rk, "No");
             }
         }
         strcat(buff, qj); strcat(buff, " "); strcat(buff, qk); strcat(buff, " "); strcat(buff, rj); strcat(buff, " "); strcat(buff, rk);
     }
     else { // all other stages
-        if (unit_i->first_execute) {
+        /*if (unit_i->first_execute) {
             strcpy(qj, "-");
             strcpy(qk, "-");
             strcpy(rj, "Yes");
             strcpy(rk, "Yes");
             strcat(buff, qj); strcat(buff, " "); strcat(buff, qk); strcat(buff, " "); strcat(buff, rj); strcat(buff, " "); strcat(buff, rk);
             unit_i->first_execute = 0;
-        }
-        else {
+        }*/
+        
             strcpy(qj, "-");
             strcpy(qk, "-");
             strcpy(rj, "No");
             strcpy(rk, "No");
             strcat(buff, qj); strcat(buff, " "); strcat(buff, qk); strcat(buff, " "); strcat(buff, rj); strcat(buff, " "); strcat(buff, rk);
-        }
+        
     }
     strcpy(UNIT_TRACE[unit_trace_index], buff);
     unit_trace_index += 1;
@@ -1191,7 +1310,7 @@ void continue_execution(unit* unit_i) {
     int src0_index = (unit_i->fj.index);
     int src1_index = (unit_i->fk.index);
 
-    if (unit_i->stage == 1) { // read operands
+    if (unit_i->stage_q == 1) { // read operands
         if (unit_i->op.value == 0) { // LD
             if (TRUE) { // The dst register is up to date
                 read_operands(unit_i);
@@ -1220,28 +1339,28 @@ void continue_execution(unit* unit_i) {
             }
         }
         if (unit_i->trace == 1) { // so need to trace this unit
-            handle_traceunit(unit_i, new_unit_name, dst_index, src0_index, src1_index);
+            //handle_traceunit(unit_i, new_unit_name, dst_index, src0_index, src1_index);
         }
         return;
     }
-    else if (unit_i->stage == 2) { // execute
+    else if (unit_i->stage_q == 2) { // execute
         execute(unit_i);
         if (unit_i->trace == 1) { // so need to trace this unit
-            handle_traceunit(unit_i, new_unit_name, dst_index, src0_index, src1_index);
+            //handle_traceunit(unit_i, new_unit_name, dst_index, src0_index, src1_index);
         }
         return;
     }
-    else if (unit_i->stage == 3) { // write result
+    else if (unit_i->stage_q == 3) { // write result
         if (!check_war(unit_i)) { // no hazard
             write_result(unit_i);
             if (unit_i->trace == 1) { // so need to trace this unit
-                handle_traceunit(unit_i, new_unit_name, dst_index, src0_index, src1_index);
+                //handle_traceunit(unit_i, new_unit_name, dst_index, src0_index, src1_index);
             }
             return;
         }
         else {
             if (unit_i->trace == 1) { // so need to trace this unit
-                handle_traceunit(unit_i, new_unit_name, dst_index, src0_index, src1_index);
+                //handle_traceunit(unit_i, new_unit_name, dst_index, src0_index, src1_index);
             }
             return;
         }
@@ -1249,7 +1368,7 @@ void continue_execution(unit* unit_i) {
 };
 
 int unit_is_busy(unit unit_i) {
-    if (unit_i.busy) {
+    if (unit_i.busy_q) {
         return 1;
     }
     return 0;
@@ -1280,8 +1399,8 @@ int run_if_busy(unit** head) {
     unit* iter = *head;
     int busy = 0;
     while (iter != NULL) {
-        if (iter->busy == 1) {
-            if (iter->op.value == 0 && iter->cycles_left == 0) {
+        if (iter->busy_q == 1) {
+            if (iter->op.value == 0 && iter->cycles_left_q == 0) {
                 printf("LD finish\n");
             }
             continue_execution(iter);
@@ -1312,63 +1431,82 @@ void d_to_q() {
 
     while (iter_add != NULL) {
 
-        if (iter_add->busy == 1) {
+        if (iter_add->busy_q == 1 || iter_add->busy_d == 1) {
             strcpy(iter_add->qj_q , iter_add->qj_d);
             strcpy(iter_add->qk_q , iter_add->qk_d);
             iter_add->rj_q = iter_add->rj_d;
             iter_add->rk_q = iter_add->rk_d;
+            iter_add->busy_q = iter_add->busy_d;
+            iter_add->stage_q = iter_add->stage_d;
+            iter_add->cycles_left_q = iter_add->cycles_left_d;
         }
         iter_add = iter_add->next;
     }
 
     while (iter_sub != NULL) {
-        if (iter_sub->busy == 1) {
+        if (iter_sub->busy_q == 1 || iter_sub->busy_d == 1) {
             strcpy(iter_sub->qj_q, iter_sub->qj_d);
             strcpy(iter_sub->qk_q, iter_sub->qk_d);
             iter_sub->rj_q = iter_sub->rj_d;
             iter_sub->rk_q = iter_sub->rk_d;
+            iter_sub->busy_q = iter_sub->busy_d;
+            iter_sub->stage_q = iter_sub->stage_d;
+            iter_sub->cycles_left_q = iter_sub->cycles_left_d;
+        
         }
         iter_sub = iter_sub->next;
 
     }
 
     while (iter_mul != NULL) {
-        if (iter_mul->busy == 1) {
+        if (iter_mul->busy_q == 1 || iter_mul->busy_d == 1) {
             strcpy(iter_mul->qj_q, iter_mul->qj_d);
             strcpy(iter_mul->qk_q, iter_mul->qk_d);
             iter_mul->rj_q = iter_mul->rj_d;
             iter_mul->rk_q = iter_mul->rk_d;
+            iter_mul->busy_q = iter_mul->busy_d;
+            iter_mul->stage_q = iter_mul->stage_d;
+            iter_mul->cycles_left_q = iter_mul->cycles_left_d;
         }
         iter_mul = iter_mul->next;
     }
 
     while (iter_div != NULL) {
-        if (iter_div->busy == 1) {
+        if (iter_div->busy_q == 1 || iter_div->busy_d == 1) {
             strcpy(iter_div->qj_q, iter_div->qj_d);
             strcpy(iter_div->qk_q, iter_div->qk_d);
             iter_div->rj_q = iter_div->rj_d;
             iter_div->rk_q = iter_div->rk_d;
+            iter_div->busy_q = iter_div->busy_d;
+            iter_div->stage_q = iter_div->stage_d;
+            iter_div->cycles_left_q = iter_div->cycles_left_d;
         }
         iter_div = iter_div->next;
 
     }
 
     while (iter_ld != NULL) {
-        if (iter_ld->busy == 1) {
+        if (iter_ld->busy_q == 1 || iter_ld->busy_d==1) {
             strcpy(iter_ld->qj_q, iter_ld->qj_d);
             strcpy(iter_ld->qk_q, iter_ld->qk_d);
             iter_ld->rj_q = iter_ld->rj_d;
             iter_ld->rk_q = iter_ld->rk_d;
+            iter_ld->busy_q = iter_ld->busy_d;
+            iter_ld->stage_q = iter_ld->stage_d;
+            iter_ld->cycles_left_q = iter_ld->cycles_left_d;
         }
         iter_ld = iter_ld->next;
 
     }
     while (iter_st != NULL) {
-        if (iter_st->busy == 1) {
+        if (iter_st->busy_q == 1 || iter_st->busy_d == 1) {
             strcpy(iter_st->qj_q, iter_st->qj_d);
             strcpy(iter_st->qk_q, iter_st->qk_d);
             iter_st->rj_q = iter_st->rj_d;
             iter_st->rk_q = iter_st->rk_d;
+            iter_st->busy_q = iter_st->busy_d;
+            iter_st->stage_q = iter_st->stage_d;
+            iter_st->cycles_left_q = iter_st->cycles_left_d;
         }
         iter_st = iter_st->next;
     }
@@ -1388,7 +1526,25 @@ void run_scoreboard(FILE* dmemout, FILE* regout, fifo inst_fifo, unit** add_unit
     imemin_line next_instruction;
     bool halt_flag = FALSE;
     //instruction_decoded = decrypt_instruction(MEMORY[mem_index]); //first instruction
+    unit* trace_unit;
+    trace_unit = find_traceunit();
+    
     while (true) {
+
+        if (trace_unit->busy_d == 1) {
+            char new_unit_name[20];
+            char index_str[4];
+            strcpy(new_unit_name, trace_unit->type);
+            snprintf(index_str, 4, "%d", trace_unit->index);
+            strcat(new_unit_name, index_str);
+
+            int dst_index = (trace_unit->fi.index);
+            int src0_index = (trace_unit->fj.index);
+            int src1_index = (trace_unit->fk.index);
+
+            handle_traceunit(trace_unit, new_unit_name, dst_index, src0_index, src1_index);
+        }
+
         d_to_q();
         printf("cycle: %d\n", clock);
         //if (clock == 3) {
@@ -1485,10 +1641,10 @@ void run_scoreboard(FILE* dmemout, FILE* regout, fifo inst_fifo, unit** add_unit
             instruction_decoded = decrypt_instruction(MEMORY[mem_index]);
             //current_opcode = instruction_decoded.opcode;
             if (instruction_decoded.opcode.value == 6 || halt_flag == TRUE) { // TODO: let the previous instructions run to complete before exiting.
-                printf("opcode value is :%d ! Finishing the current commands and exiting. .\n", current_opcode.value);
+                printf("opcode value is : %d ! Finishing the current commands and exiting. .\n", current_opcode.value);
                 halt_flag = TRUE; // halt == 6
 
-                printf("cycle: %d\n", clock);
+                //printf("cycle: %d\n", clock);
                 clock += 1;
             }
             else if (can_issue_instruction(instruction_decoded, add_units, sub_units, mul_units, div_units, ld_units, st_units)) {
@@ -1504,8 +1660,9 @@ void run_scoreboard(FILE* dmemout, FILE* regout, fifo inst_fifo, unit** add_unit
                 mem_index += 1;
             }
         }
-
-
+        
+       
+        
     }
 
     create_dmemout(dmemout);
@@ -1519,7 +1676,7 @@ void print_list(unit** head) {
 
     unit* iter = *head;
     while (iter != NULL) {
-        printf("unit type: %s, index: %d, latency: %d, stage: %d, busy: %d\n", iter->type, iter->index, iter->latency, iter->stage, iter->busy);
+        printf("unit type: %s, index: %d, latency: %d, stage: %d, busy: %d\n", iter->type, iter->index, iter->latency, iter->stage_q, iter->busy_q);
         iter = iter->next;
     }
 }
@@ -1539,8 +1696,10 @@ unit* create_unit(char* type, int delay, int index) {
     unit* new_unit = (unit*)malloc(sizeof(unit));
     if (new_unit != NULL) {
         strcpy(new_unit->type, type);
-        new_unit->stage = 0;
-        new_unit->busy = 0;
+        new_unit->stage_d = 0;
+        new_unit->stage_q = 0;
+        new_unit->busy_d = 0;
+        new_unit->busy_q = 0;
         new_unit->latency = delay;
         new_unit->index = index;
         new_unit->next = NULL;
@@ -1554,6 +1713,15 @@ unit* create_unit(char* type, int delay, int index) {
         new_unit->rj_q = YES;
         new_unit->rk_d = YES;
         new_unit->rk_q = YES;
+        char new_unit_name[20];
+        char index_str[4];
+        strcpy(new_unit_name, type);
+        snprintf(index_str, 4, "%d",index);
+        strcat(new_unit_name, index_str);
+        if (strcmp(trace_unit, new_unit_name) == 0) {
+            new_unit->trace = 1;
+        }
+        
 
     }
     return new_unit;
